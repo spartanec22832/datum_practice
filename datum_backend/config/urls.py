@@ -11,8 +11,8 @@ urlpatterns = [
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
     path("api/auth/", include("users.urls")),
-    path("api/projects/", include("projects.urls")),
-    path("api/knowledge/", include("knowledge.urls")),
+    path("api/", include("projects.urls")),
+    path("api/", include("knowledge.urls")),
 ]
 
 if settings.DEBUG:
