@@ -11,6 +11,9 @@ class MeView(APIView):
             "id": request.user.id,
             "username": request.user.username,
             "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "role": request.user.role,
             "is_staff": request.user.is_staff,
-            "is_superuser": request.user.is_superuser,
+            "is_active": request.user.is_active,
         })
