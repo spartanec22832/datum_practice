@@ -22,6 +22,7 @@ INSTALLED_APPS = [
 
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
 
     "users",
     "projects",
@@ -82,12 +83,20 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.AllowAny",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Datum API",
+    "DESCRIPTION": "Swagger-документация для тестирования API Datum.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 AUTH_PASSWORD_VALIDATORS = [

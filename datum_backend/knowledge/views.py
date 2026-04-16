@@ -12,7 +12,8 @@ from .permissions import (
 )
 from .serializers import (
     CardMediaSerializer,
-    CardSerializer,
+    CardReadSerializer,
+    CardWriteSerializer,
     SectionContentSerializer,
     SectionSerializer,
 )
@@ -70,10 +71,13 @@ class SectionManageView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthorOrAdmin]
     http_method_names = ["put", "patch", "delete", "options"]
 
-
 class CardListCreateView(generics.ListCreateAPIView):
-    serializer_class = CardSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return CardWriteSerializer
+        return CardReadSerializer
 
     def get_queryset(self):
         queryset = Card.objects.select_related("section", "author").prefetch_related(
@@ -89,7 +93,7 @@ class CardListCreateView(generics.ListCreateAPIView):
 
 
 class CardDetailView(generics.RetrieveAPIView):
-    serializer_class = CardSerializer
+    serializer_class = CardReadSerializer
     lookup_field = "slug"
 
     def get_queryset(self):
@@ -101,9 +105,13 @@ class CardDetailView(generics.RetrieveAPIView):
 
 class CardManageView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Card.objects.select_related("section", "author").prefetch_related("media_items")
-    serializer_class = CardSerializer
     permission_classes = [IsAuthorOrAdmin]
-    http_method_names = ["put", "patch", "delete", "options"]
+    http_method_names = ["get", "put", "patch", "delete", "options"]
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH"):
+            return CardWriteSerializer
+        return CardReadSerializer
 
 
 class CardMediaListCreateView(generics.ListCreateAPIView):

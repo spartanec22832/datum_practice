@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 from .models import Card, CardMedia, Section
 
@@ -18,6 +19,54 @@ class CardMediaSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = ("id", "card", "media_type", "created_at")
+
+class CardReadSerializer(serializers.ModelSerializer):
+    author_username = serializers.CharField(source="author.username", read_only=True)
+    section_slug = serializers.CharField(source="section.slug", read_only=True)
+    media_items = CardMediaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Card
+        fields = (
+            "id",
+            "title",
+            "slug",
+            "summary",
+            "content",
+            "section",
+            "section_slug",
+            "author",
+            "author_username",
+            "main_image",
+            "is_published",
+            "media_items",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "slug",
+            "author",
+            "author_username",
+            "section_slug",
+            "media_items",
+            "created_at",
+            "updated_at",
+        )
+
+
+class CardWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = (
+            "id",
+            "title",
+            "summary",
+            "content",
+            "section",
+            "is_published",
+        )
+        read_only_fields = ("id",)
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -43,12 +92,12 @@ class SectionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "author", "author_username", "created_at", "updated_at")
+        read_only_fields = ("id", "slug", "author", "author_username", "created_at", "updated_at")
 
-    def get_children_count(self, obj):
+    def get_children_count(self, obj) -> int:
         return obj.children.count()
 
-    def get_cards_count(self, obj):
+    def get_cards_count(self, obj) -> int:
         return obj.cards.count()
 
     def validate_is_system(self, value):
@@ -111,10 +160,12 @@ class SectionContentSerializer(SectionSerializer):
             return (queryset.filter(is_published=True) | queryset.filter(author=user)).distinct()
         return queryset.filter(is_published=True)
 
+    @extend_schema_field(SectionSerializer(many=True))
     def get_child_sections(self, obj):
         queryset = self._filter_sections(obj.children.all())
         return SectionSerializer(queryset, many=True, context=self.context).data
 
+    @extend_schema_field(CardReadSerializer(many=True))
     def get_cards(self, obj):
         queryset = self._filter_cards(obj.cards.all())
-        return CardSerializer(queryset, many=True, context=self.context).data
+        return CardReadSerializer(queryset, many=True, context=self.context).data
