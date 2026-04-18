@@ -11,6 +11,7 @@ import CardPage from "./pages/CardPage";
 import SectionsPage from "./pages/SectionsPage";
 import ProjectEditPage from "./pages/ProjectEditPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProjectCreatePage from "./pages/ProjectCreatePage";
 
 export default function App() {
     return (
@@ -19,6 +20,7 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route index element={<HomePage />} />
+                        <Route path="projects/create" element={<ProjectCreatePage />} />
                         <Route path="projects" element={<ProjectsPage />} />
                         <Route path="projects/:slug" element={<ProjectDetailPage />} />
                         <Route path="login" element={<LoginPage />} />

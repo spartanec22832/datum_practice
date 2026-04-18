@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { getProjectBySlug, updateProject } from "../services/projects";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createProject } from "../services/projects";
 import { useAuth } from "../context/AuthContext";
 
-export default function ProjectEditPage() {
-    const { slug } = useParams();
+export default function ProjectCreatePage() {
     const navigate = useNavigate();
     const { isAdmin, isAuthLoading } = useAuth();
 
-    const [project, setProject] = useState(null);
     const [formData, setFormData] = useState({
         title: "",
         short_description: "",
@@ -18,37 +16,9 @@ export default function ProjectEditPage() {
         main_image: null,
     });
 
-    const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-
-    useEffect(() => {
-        async function loadProject() {
-            try {
-                setIsLoading(true);
-                setError("");
-
-                const data = await getProjectBySlug(slug);
-                setProject(data);
-                setFormData({
-                    title: data.title || "",
-                    short_description: data.short_description || "",
-                    full_description: data.full_description || "",
-                    is_published: Boolean(data.is_published),
-                    geojson: data.geojson ? JSON.stringify(data.geojson, null, 2) : "",
-                    main_image: null,
-                });
-            } catch (err) {
-                console.error(err);
-                setError("Не удалось загрузить проект для редактирования.");
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        loadProject();
-    }, [slug]);
 
     function handleChange(event) {
         const { name, value, type, checked, files } = event.target;
@@ -81,16 +51,16 @@ export default function ProjectEditPage() {
                     throw new Error("Файл не удалось прочитать как текст.");
                 }
 
-                const parsed = JSON.parse(text);
+                JSON.parse(text);
 
                 setFormData((prev) => ({
                     ...prev,
-                    geojson: JSON.stringify(parsed, null, 2),
+                    geojson: text,
                 }));
 
                 setError("");
-            } catch (readError) {
-                console.error(readError);
+            } catch (error) {
+                console.error(error);
                 setError("Файл GeoJSON содержит некорректный JSON.");
             }
         };
@@ -105,10 +75,6 @@ export default function ProjectEditPage() {
     async function handleSubmit(event) {
         event.preventDefault();
 
-        if (!project) {
-            return;
-        }
-
         try {
             setIsSaving(true);
             setError("");
@@ -119,7 +85,7 @@ export default function ProjectEditPage() {
             if (formData.geojson.trim()) {
                 try {
                     geojsonValue = JSON.parse(formData.geojson);
-                } catch (parseError) {
+                } catch (error) {
                     setError("GeoJSON должен быть корректным JSON.");
                     setIsSaving(false);
                     return;
@@ -135,13 +101,12 @@ export default function ProjectEditPage() {
                     geojson: geojsonValue,
                 };
 
-                const updated = await updateProject(project.id, payload, false);
+                const created = await createProject(payload, false);
 
-                setProject(updated);
-                setSuccessMessage("Проект успешно обновлён.");
+                setSuccessMessage("Проект успешно создан.");
 
                 setTimeout(() => {
-                    navigate(`/projects/${updated.slug}`);
+                    navigate(`/projects/${created.slug}`);
                 }, 700);
 
                 return;
@@ -161,43 +126,20 @@ export default function ProjectEditPage() {
                 payload.append("geojson", JSON.stringify(geojsonValue));
             }
 
-            const updated = await updateProject(project.id, payload, true);
+            const created = await createProject(payload, true);
 
-            setProject(updated);
-            setSuccessMessage("Проект успешно обновлён.");
+            setSuccessMessage("Проект успешно создан.");
 
             setTimeout(() => {
-                navigate(`/projects/${updated.slug}`);
+                navigate(`/projects/${created.slug}`);
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось сохранить изменения.");
+            setError("Не удалось создать проект.");
         } finally {
             setIsSaving(false);
         }
     }
-
-    if (isAuthLoading || isLoading) {
-        return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
-                Загрузка...
-            </div>
-        );
-    }
-
-    if (!isAdmin) {
-        return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
-                У вас нет прав для редактирования проектов.
-            </div>
-        );
-    }
-
-    const currentImageUrl = project?.main_image
-        ? project.main_image.startsWith("http")
-            ? project.main_image
-            : `${import.meta.env.VITE_MEDIA_BASE_URL || "http://127.0.0.1:8000"}${project.main_image}`
-        : null;
 
     return (
         <div className="space-y-8">
@@ -206,22 +148,15 @@ export default function ProjectEditPage() {
                     Проекты
                 </Link>
                 <span>/</span>
-                <Link
-                    to={`/projects/${slug}`}
-                    className="transition hover:text-slate-700"
-                >
-                    {project?.title || slug}
-                </Link>
-                <span>/</span>
-                <span className="text-slate-500">Редактирование</span>
+                <span className="text-slate-500">Создание</span>
             </div>
 
             <section className="space-y-3">
                 <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-                    Редактирование проекта
+                    Создание проекта
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-slate-600">
-                    Здесь администратор может изменить содержимое проекта.
+                    Здесь администратор может создать новый проект.
                 </p>
             </section>
 
@@ -329,8 +264,7 @@ export default function ProjectEditPage() {
                     />
 
                     <p className="text-sm text-slate-500">
-                        Можно загрузить файл .json или .geojson — его содержимое подставится
-                        в поле GeoJSON выше.
+                        Можно загрузить файл .json или .geojson — его содержимое подставится в поле ниже.
                     </p>
                 </div>
 
@@ -350,24 +284,7 @@ export default function ProjectEditPage() {
                         onChange={handleChange}
                         className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
                     />
-
-                    {project?.main_image && (
-                        <p className="text-sm text-slate-500">
-                            Текущее изображение уже загружено. Можно выбрать новый файл для
-                            замены.
-                        </p>
-                    )}
                 </div>
-
-                {currentImageUrl && (
-                    <div className="overflow-hidden rounded-2xl border border-slate-200">
-                        <img
-                            src={currentImageUrl}
-                            alt={project.title}
-                            className="h-56 w-full object-cover"
-                        />
-                    </div>
-                )}
 
                 <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                     <input
@@ -385,11 +302,11 @@ export default function ProjectEditPage() {
                         disabled={isSaving}
                         className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
                     >
-                        {isSaving ? "Сохраняем..." : "Сохранить"}
+                        {isSaving ? "Создаём..." : "Создать проект"}
                     </button>
 
                     <Link
-                        to={`/projects/${slug}`}
+                        to="/projects"
                         className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                         Отмена

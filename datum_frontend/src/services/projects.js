@@ -27,3 +27,16 @@ export async function deleteProject(id) {
     const response = await api.delete(`/projects/${id}/`);
     return response.data;
 }
+
+export async function createProject(payload, isFormData = false) {
+    const config = isFormData
+        ? {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+        : {};
+
+    const response = await api.post("/projects/", payload, config);
+    return response.data;
+}

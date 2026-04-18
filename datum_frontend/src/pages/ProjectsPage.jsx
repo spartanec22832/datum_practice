@@ -4,14 +4,7 @@ import { getProjects } from "../services/projects";
 import ProjectsMap from "../components/ProjectsMap";
 import { useAuth } from "../context/AuthContext";
 
-function ProjectCard({
-                         project,
-                         isAdmin,
-                         isActive,
-                         onHover,
-                         onLeave,
-                         onFocusProject,
-                     }) {
+function ProjectCard({ project, isAdmin, isActive, onHover, onLeave, onFocusProject }) {
     return (
         <article
             onMouseEnter={() => onHover(project)}
@@ -23,26 +16,29 @@ function ProjectCard({
             }`}
         >
             <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                        Проект
-                    </p>
+                <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            Проект
+                        </p>
 
-                    {isAdmin && (
-                        project.is_published ? (
-                            <span
-                                className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-        <span className="h-2 w-2 rounded-full bg-green-500"/>
-        Опубликовано
-      </span>
-                        ) : (
-                            <span
-                                className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
-        <span className="h-2 w-2 rounded-full bg-red-500"/>
-        Не опубликовано
-      </span>
-                        )
-                    )}
+                        {isAdmin &&
+                            (project.is_published ? (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                  Опубликовано
+                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                  <span className="h-2 w-2 rounded-full bg-red-500" />
+                  Не опубликовано
+                </span>
+                            ))}
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        {project.title}
+                    </h2>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600">
@@ -72,13 +68,13 @@ function ProjectCard({
 
 export default function ProjectsPage() {
     const navigate = useNavigate();
+    const { isAdmin } = useAuth();
 
     const [projects, setProjects] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [activeProject, setActiveProject] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const { isAdmin } = useAuth();
 
     useEffect(() => {
         async function loadProjects() {
@@ -116,10 +112,8 @@ export default function ProjectsPage() {
         return projects.filter((project) => {
             const title = project.title?.toLowerCase() || "";
             const slug = project.slug?.toLowerCase() || "";
-            const shortDescription =
-                project.short_description?.toLowerCase() || "";
-            const fullDescription =
-                project.full_description?.toLowerCase() || "";
+            const shortDescription = project.short_description?.toLowerCase() || "";
+            const fullDescription = project.full_description?.toLowerCase() || "";
 
             return (
                 title.includes(query) ||
@@ -221,8 +215,19 @@ export default function ProjectsPage() {
                                 </p>
                             </div>
 
-                            <div className="text-sm text-slate-400">
-                                Всего: {projects.length}
+                            <div className="flex items-center gap-3">
+                                <div className="text-sm text-slate-400">
+                                    Всего: {projects.length}
+                                </div>
+
+                                {isAdmin && (
+                                    <Link
+                                        to="/projects/create"
+                                        className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                    >
+                                        + Добавить проект
+                                    </Link>
+                                )}
                             </div>
                         </div>
 
