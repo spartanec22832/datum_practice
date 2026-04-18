@@ -28,9 +28,11 @@ export default function Layout() {
                             <NavLink to="/projects" className={navLinkClass}>
                                 Проекты
                             </NavLink>
-                            <NavLink to="/sections/" className={navLinkClass}>
-                                Справочник
-                            </NavLink>
+                            {isAuthenticated && (
+                                <NavLink to="/sections" className={navLinkClass}>
+                                    Справочник
+                                </NavLink>
+                            )}
                             {!isAuthenticated && (
                                 <NavLink to="/login" className={navLinkClass}>
                                     Вход

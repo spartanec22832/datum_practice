@@ -10,6 +10,7 @@ import SectionPage from "./pages/SectionPage";
 import CardPage from "./pages/CardPage";
 import SectionsPage from "./pages/SectionsPage";
 import ProjectEditPage from "./pages/ProjectEditPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
     return (
@@ -22,10 +23,12 @@ export default function App() {
                         <Route path="projects/:slug" element={<ProjectDetailPage />} />
                         <Route path="login" element={<LoginPage />} />
                         <Route path="*" element={<NotFoundPage />} />
-                        <Route path="sections/:slug" element={<SectionPage />} />
-                        <Route path="cards/:slug" element={<CardPage />} />
-                        <Route path="sections" element={<SectionsPage />} />
                         <Route path="projects/:slug/edit" element={<ProjectEditPage />} />
+                        <Route element={<ProtectedRoute />}>
+                            <Route path="sections" element={<SectionsPage />} />
+                            <Route path="sections/:slug" element={<SectionPage />} />
+                            <Route path="cards/:slug" element={<CardPage />} />
+                        </Route>
                     </Route>
                 </Routes>
             </BrowserRouter>
