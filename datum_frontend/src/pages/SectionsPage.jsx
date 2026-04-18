@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getSections } from "../services/sections";
+import { useAuth } from "../context/AuthContext";
 
 function SectionTile({ section }) {
     return (
@@ -29,6 +30,8 @@ function SectionTile({ section }) {
 }
 
 export default function SectionsPage() {
+    const { isAdmin } = useAuth();
+
     const [sections, setSections] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
@@ -144,11 +147,37 @@ export default function SectionsPage() {
             )}
 
             {!isLoading && !error && filteredSections.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                    {filteredSections.map((section) => (
-                        <SectionTile key={section.id} section={section} />
-                    ))}
-                </div>
+                <section className="space-y-5">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-900">Секции</h2>
+                            <p className="text-sm text-slate-500">
+                                Найдено: {filteredSections.length}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="text-sm text-slate-400">
+                                Всего: {rootSections.length}
+                            </div>
+
+                            {isAdmin && (
+                                <Link
+                                    to="/sections/create"
+                                    className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                >
+                                    + Добавить секцию
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        {filteredSections.map((section) => (
+                            <SectionTile key={section.id} section={section} />
+                        ))}
+                    </div>
+                </section>
             )}
         </div>
     );
