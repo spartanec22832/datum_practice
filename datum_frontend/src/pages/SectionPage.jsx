@@ -7,44 +7,88 @@ import {
 } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
 
-function SectionTile({ section }) {
+function SectionTile({ section, isAdmin }) {
     return (
         <Link
             to={`/sections/${section.slug}`}
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
         >
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Секция
-            </p>
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            Секция
+                        </p>
 
-            <h3 className="mt-3 text-2xl font-bold text-slate-900">
-                {section.title}
-            </h3>
+                        {isAdmin &&
+                            (section.is_published ? (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                                    Опубликовано
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                    Не опубликовано
+                                </span>
+                            ))}
+                    </div>
 
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-                {section.description || "Описание секции отсутствует."}
-            </p>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        {section.title}
+                    </h2>
+                </div>
+
+                <p className="text-sm leading-7 text-slate-600">
+                    {section.description || "Описание секции отсутствует."}
+                </p>
+
+                <div className="flex flex-wrap gap-4 text-xs text-slate-400">
+                    <span>Подсекций: {section.children_count ?? 0}</span>
+                    <span>Карточек: {section.cards_count ?? 0}</span>
+                </div>
+            </div>
         </Link>
     );
 }
 
-function CardTile({ card }) {
+
+function CardTile({ card, isAdmin }) {
     return (
         <Link
             to={`/cards/${card.slug}`}
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
         >
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Карточка
-            </p>
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            Карточка
+                        </p>
 
-            <h3 className="mt-3 text-2xl font-bold text-slate-900">
-                {card.title}
-            </h3>
+                        {isAdmin &&
+                            (card.is_published ? (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                                    Опубликовано
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                    Не опубликовано
+                                </span>
+                            ))}
+                    </div>
 
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-                {card.summary || "Краткое описание карточки отсутствует."}
-            </p>
+                    <h3 className="text-2xl font-bold text-slate-900">
+                        {card.title}
+                    </h3>
+                </div>
+
+                <p className="text-sm leading-7 text-slate-600">
+                    {card.summary || "Краткое описание карточки отсутствует."}
+                </p>
+            </div>
         </Link>
     );
 }
@@ -211,7 +255,7 @@ export default function SectionPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {content.sections.map((item) => (
-                            <SectionTile key={item.id} section={item} />
+                            <SectionTile key={item.id} section={item} isAdmin={isAdmin} />
                         ))}
                     </div>
                 )}
@@ -232,7 +276,7 @@ export default function SectionPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {content.cards.map((item) => (
-                            <CardTile key={item.id} card={item} />
+                            <CardTile key={item.id} card={item} isAdmin={isAdmin} />
                         ))}
                     </div>
                 )}
