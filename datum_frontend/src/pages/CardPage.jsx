@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { getCardBySlug } from "../services/cards";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { deleteCard, getCardBySlug } from "../services/cards";
+import { useAuth } from "../context/AuthContext";
 
 function getFileUrl(filePath) {
     if (!filePath) {
@@ -101,10 +102,16 @@ function MediaItemCard({ item }) {
 
 export default function CardPage() {
     const { slug } = useParams();
+    const navigate = useNavigate();
+    const { isAdmin } = useAuth();
 
     const [card, setCard] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         async function loadCard() {
@@ -148,6 +155,35 @@ export default function CardPage() {
         )
         : [];
 
+    async function handleDeleteCard() {
+        if (!card) {
+            return;
+        }
+
+        if (deleteConfirmation !== card.title) {
+            return;
+        }
+
+        try {
+            setIsDeleting(true);
+            setError("");
+
+            await deleteCard(card.id);
+
+            if (sectionSlug) {
+                navigate(`/sections/${sectionSlug}`);
+            } else {
+                navigate("/sections");
+            }
+        } catch (err) {
+            console.error(err);
+            setError("Не удалось удалить карточку.");
+            setIsDeleteModalOpen(false);
+        } finally {
+            setIsDeleting(false);
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
@@ -156,7 +192,7 @@ export default function CardPage() {
         );
     }
 
-    if (error) {
+    if (error && !card) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
                 {error}
@@ -215,7 +251,35 @@ export default function CardPage() {
                         {card.summary || "Краткое описание карточки отсутствует."}
                     </p>
                 </div>
+
+                {isAdmin && (
+                    <div className="flex flex-wrap gap-3">
+                        <Link
+                            to={`/cards/${card.slug}/edit`}
+                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            Редактировать карточку
+                        </Link>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDeleteConfirmation("");
+                                setIsDeleteModalOpen(true);
+                            }}
+                            className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                        >
+                            Удалить карточку
+                        </button>
+                    </div>
+                )}
             </section>
+
+            {error && (
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                    {error}
+                </div>
+            )}
 
             <article className="overflow-hidden rounded-[32px] bg-white shadow-sm">
                 {imageUrl ? (
@@ -268,6 +332,65 @@ export default function CardPage() {
                     </div>
                 )}
             </section>
+
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+                    <div className="w-full max-w-lg rounded-[32px] bg-white p-8 shadow-2xl">
+                        <div className="space-y-4">
+                            <h2 className="text-2xl font-bold text-slate-900">
+                                Подтвердите удаление карточки
+                            </h2>
+
+                            <p className="text-sm leading-6 text-slate-600">
+                                Чтобы удалить карточку, введите её название точно так же, как оно
+                                указано ниже:
+                            </p>
+
+                            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">
+                                {card.title}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="delete-confirmation"
+                                    className="block text-sm font-medium text-slate-700"
+                                >
+                                    Название карточки
+                                </label>
+
+                                <input
+                                    id="delete-confirmation"
+                                    type="text"
+                                    value={deleteConfirmation}
+                                    onChange={(event) => setDeleteConfirmation(event.target.value)}
+                                    placeholder="Введите точное название карточки"
+                                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteCard}
+                                    disabled={isDeleting || deleteConfirmation !== card.title}
+                                    className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {isDeleting ? "Удаление..." : "Удалить навсегда"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                    disabled={isDeleting}
+                                    className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                >
+                                    Отмена
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

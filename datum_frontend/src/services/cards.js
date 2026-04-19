@@ -26,3 +26,26 @@ export async function createCardMedia(cardId, payload) {
     });
     return response.data;
 }
+
+export async function updateCard(id, payload, isFormData = false) {
+    const config = isFormData
+        ? {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+        : {};
+
+    const response = await api.patch(`/cards/${id}/`, payload, config);
+    return response.data;
+}
+
+export async function deleteCard(id) {
+    const response = await api.delete(`/cards/${id}/`);
+    return response.data;
+}
+
+export async function deleteCardMedia(mediaId) {
+    const response = await api.delete(`/media/${mediaId}/`);
+    return response.data;
+}

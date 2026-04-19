@@ -15,6 +15,7 @@ import ProjectCreatePage from "./pages/ProjectCreatePage";
 import SectionCreatePage from "./pages/SectionCreatePage";
 import SectionEditPage from "./pages/SectionEditPage";
 import CardCreatePage from "./pages/CardCreatePage";
+import CardEditPage from "./pages/CardEditPage";
 
 export default function App() {
     return (
@@ -23,7 +24,6 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route index element={<HomePage />} />
-                        <Route path="projects/create" element={<ProjectCreatePage />} />
                         <Route path="projects" element={<ProjectsPage />} />
                         <Route path="projects/:slug" element={<ProjectDetailPage />} />
                         <Route path="login" element={<LoginPage />} />
@@ -36,6 +36,8 @@ export default function App() {
                             <Route path="cards/:slug" element={<CardPage />} />
                             <Route path="sections/:slug/edit" element={<SectionEditPage />} />
                             <Route path="sections/:slug/cards/create" element={<CardCreatePage />} />
+                            <Route path="cards/:slug/edit" element={<CardEditPage />} />
+                            <Route path="projects/create" element={<ProjectCreatePage />} />
                         </Route>
                     </Route>
                 </Routes>
