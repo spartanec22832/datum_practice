@@ -34,24 +34,16 @@ function SectionTile({ section, isAdmin }) {
                             ))}
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900">
-                        {section.title}
-                    </h2>
+                    <h3 className="text-2xl font-bold text-slate-900">{section.title}</h3>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600">
                     {section.description || "Описание секции отсутствует."}
                 </p>
-
-                <div className="flex flex-wrap gap-4 text-xs text-slate-400">
-                    <span>Подсекций: {section.children_count ?? 0}</span>
-                    <span>Карточек: {section.cards_count ?? 0}</span>
-                </div>
             </div>
         </Link>
     );
 }
-
 
 function CardTile({ card, isAdmin }) {
     return (
@@ -80,9 +72,7 @@ function CardTile({ card, isAdmin }) {
                             ))}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-slate-900">
-                        {card.title}
-                    </h3>
+                    <h3 className="text-2xl font-bold text-slate-900">{card.title}</h3>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600">
@@ -96,7 +86,7 @@ function CardTile({ card, isAdmin }) {
 export default function SectionPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin } = useAuth();
+    const { isAdmin, canCreateKnowledge } = useAuth();
 
     const [section, setSection] = useState(null);
     const [content, setContent] = useState({ sections: [], cards: [] });
@@ -204,22 +194,26 @@ export default function SectionPage() {
                     </p>
                 </div>
 
-                {isAdmin && (
-                    <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3">
+                    {isAdmin && (
                         <Link
                             to={`/sections/${section.slug}/edit`}
                             className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
                         >
                             Редактировать секцию
                         </Link>
+                    )}
 
+                    {canCreateKnowledge && (
                         <Link
                             to={`/sections/${section.slug}/cards/create`}
                             className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
                         >
                             + Добавить карточку
                         </Link>
+                    )}
 
+                    {isAdmin && (
                         <button
                             type="button"
                             onClick={() => {
@@ -230,8 +224,8 @@ export default function SectionPage() {
                         >
                             Удалить секцию
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </section>
 
             {error && (

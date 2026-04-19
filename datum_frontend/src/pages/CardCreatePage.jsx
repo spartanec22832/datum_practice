@@ -42,7 +42,7 @@ function getMediaType(fileName) {
 export default function CardCreatePage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
 
     const [section, setSection] = useState(null);
     const [formData, setFormData] = useState({
@@ -142,7 +142,7 @@ export default function CardCreatePage() {
             cardPayload.append("title", formData.title);
             cardPayload.append("summary", formData.summary);
             cardPayload.append("content", formData.content);
-            cardPayload.append("is_published", formData.is_published);
+            cardPayload.append("is_published", isAdmin ? String(formData.is_published) : "true");
             cardPayload.append("section", section.id);
 
             if (formData.main_image) {
@@ -182,7 +182,7 @@ export default function CardCreatePage() {
         );
     }
 
-    if (!isAdmin) {
+    if (!canCreateKnowledge) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
                 У вас нет прав для создания карточек.
@@ -393,15 +393,17 @@ export default function CardCreatePage() {
                     )}
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <input
-                        type="checkbox"
-                        name="is_published"
-                        checked={formData.is_published}
-                        onChange={handleChange}
-                    />
-                    <span className="text-sm text-slate-700">Опубликована</span>
-                </label>
+                {isAdmin && (
+                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            checked={formData.is_published}
+                            onChange={handleChange}
+                        />
+                        <span className="text-sm text-slate-700">Опубликована</span>
+                    </label>
+                )}
 
                 <div className="flex gap-3">
                     <button

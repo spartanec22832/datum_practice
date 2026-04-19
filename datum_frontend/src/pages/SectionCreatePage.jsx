@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function SectionCreatePage() {
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
 
     const [sections, setSections] = useState([]);
     const [formData, setFormData] = useState({
@@ -67,7 +67,7 @@ export default function SectionCreatePage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: formData.is_published,
+                is_published: isAdmin ? formData.is_published : true,
             };
 
             if (formData.parent) {
@@ -97,7 +97,7 @@ export default function SectionCreatePage() {
         );
     }
 
-    if (!isAdmin) {
+    if (!canCreateKnowledge) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
                 У вас нет прав для создания секций.
@@ -120,7 +120,7 @@ export default function SectionCreatePage() {
                     Создание секции
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-slate-600">
-                    Здесь администратор может создать новую секцию справочника.
+                    Здесь можно создать новую секцию справочника.
                 </p>
             </section>
 
@@ -198,15 +198,17 @@ export default function SectionCreatePage() {
                     </select>
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <input
-                        type="checkbox"
-                        name="is_published"
-                        checked={formData.is_published}
-                        onChange={handleChange}
-                    />
-                    <span className="text-sm text-slate-700">Опубликована</span>
-                </label>
+                {isAdmin && (
+                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            checked={formData.is_published}
+                            onChange={handleChange}
+                        />
+                        <span className="text-sm text-slate-700">Опубликована</span>
+                    </label>
+                )}
 
                 <div className="flex gap-3">
                     <button

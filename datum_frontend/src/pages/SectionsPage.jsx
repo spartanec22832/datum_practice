@@ -30,9 +30,7 @@ function SectionTile({ section, isAdmin }) {
                             ))}
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900">
-                        {section.title}
-                    </h2>
+                    <h2 className="text-2xl font-bold text-slate-900">{section.title}</h2>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600">
@@ -49,7 +47,7 @@ function SectionTile({ section, isAdmin }) {
 }
 
 export default function SectionsPage() {
-    const { isAdmin } = useAuth();
+    const { isAdmin, canCreateKnowledge } = useAuth();
 
     const [sections, setSections] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -109,9 +107,9 @@ export default function SectionsPage() {
     return (
         <div className="space-y-8">
             <section className="space-y-3">
-        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-          Справочник
-        </span>
+                <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                    Справочник
+                </span>
 
                 <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
                     Разделы и карточки
@@ -141,63 +139,65 @@ export default function SectionsPage() {
                 />
             </section>
 
-            {isLoading && (
-                <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
-                    Загрузка секций...
-                </div>
-            )}
-
-            {!isLoading && error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
-                    {error}
-                </div>
-            )}
-
-            {!isLoading && !error && rootSections.length === 0 && (
-                <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
-                    Корневые секции пока отсутствуют.
-                </div>
-            )}
-
-            {!isLoading && !error && rootSections.length > 0 && filteredSections.length === 0 && (
-                <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
-                    По вашему запросу ничего не найдено.
-                </div>
-            )}
-
-            {!isLoading && !error && filteredSections.length > 0 && (
-                <section className="space-y-5">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900">Секции</h2>
-                            <p className="text-sm text-slate-500">
-                                Найдено: {filteredSections.length}
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="text-sm text-slate-400">
-                                Всего: {rootSections.length}
-                            </div>
-
-                            {isAdmin && (
-                                <Link
-                                    to="/sections/create"
-                                    className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                                >
-                                    + Добавить секцию
-                                </Link>
-                            )}
-                        </div>
+            <section className="space-y-5">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900">Секции</h2>
+                        <p className="text-sm text-slate-500">Всего: {rootSections.length}</p>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        {filteredSections.map((section) => (
-                            <SectionTile key={section.id} section={section} isAdmin={isAdmin} />
-                        ))}
+                    {canCreateKnowledge && (
+                        <Link
+                            to="/sections/create"
+                            className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            + Добавить секцию
+                        </Link>
+                    )}
+                </div>
+
+                {isLoading && (
+                    <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                        Загрузка секций...
                     </div>
-                </section>
-            )}
+                )}
+
+                {!isLoading && error && (
+                    <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                        {error}
+                    </div>
+                )}
+
+                {!isLoading && !error && rootSections.length === 0 && (
+                    <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                        Корневые секции пока отсутствуют.
+                    </div>
+                )}
+
+                {!isLoading && !error && rootSections.length > 0 && filteredSections.length === 0 && (
+                    <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                        По вашему запросу ничего не найдено.
+                    </div>
+                )}
+
+                {!isLoading && !error && filteredSections.length > 0 && (
+                    <>
+                        <div className="text-sm text-slate-500">
+                            Найдено: {filteredSections.length}
+                        </div>
+
+                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredSections.map((section) => (
+                                <SectionTile
+                                    key={section.id}
+                                    section={section}
+                                    isAdmin={isAdmin}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
+            </section>
         </div>
     );
 }
