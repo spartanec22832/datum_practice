@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ProjectCreatePage from "./pages/ProjectCreatePage";
 import SectionCreatePage from "./pages/SectionCreatePage";
 import SectionEditPage from "./pages/SectionEditPage";
+import CardCreatePage from "./pages/CardCreatePage";
 
 export default function App() {
     return (
@@ -34,6 +35,7 @@ export default function App() {
                             <Route path="sections/create" element={<SectionCreatePage />} />
                             <Route path="cards/:slug" element={<CardPage />} />
                             <Route path="sections/:slug/edit" element={<SectionEditPage />} />
+                            <Route path="sections/:slug/cards/create" element={<CardCreatePage />} />
                         </Route>
                     </Route>
                 </Routes>

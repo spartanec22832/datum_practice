@@ -1,6 +1,103 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getCardBySlug } from "../services/cards";
+
+function getFileUrl(filePath) {
+    if (!filePath) {
+        return null;
+    }
+
+    if (filePath.startsWith("http")) {
+        return filePath;
+    }
+
+    return `${
+        import.meta.env.VITE_MEDIA_BASE_URL || "http://127.0.0.1:8000"
+    }${filePath}`;
+}
+
+function getFileName(filePath) {
+    if (!filePath) {
+        return "Файл без названия";
+    }
+
+    try {
+        const cleanPath = filePath.split("?")[0];
+        return cleanPath.split("/").pop() || "Файл без названия";
+    } catch {
+        return "Файл без названия";
+    }
+}
+
+function MediaItemCard({ item }) {
+    const rawFilePath = item.file || item.file_path;
+    const fileUrl = getFileUrl(rawFilePath);
+    const fileName = getFileName(rawFilePath);
+    const mediaType = item.media_type;
+    const caption = item.caption || "";
+
+    if (!fileUrl) {
+        return null;
+    }
+
+    return (
+        <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            {mediaType === "image" && (
+                <img
+                    src={fileUrl}
+                    alt={caption || fileName}
+                    className="h-64 w-full object-cover"
+                />
+            )}
+
+            {mediaType === "video" && (
+                <video controls className="h-64 w-full bg-black">
+                    <source src={fileUrl} />
+                    Ваш браузер не поддерживает воспроизведение видео.
+                </video>
+            )}
+
+            {mediaType === "audio" && (
+                <div className="p-6">
+                    <audio controls className="w-full">
+                        <source src={fileUrl} />
+                        Ваш браузер не поддерживает воспроизведение аудио.
+                    </audio>
+                </div>
+            )}
+
+            {mediaType === "document" && (
+                <div className="p-6">
+                    <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                        Открыть документ
+                    </a>
+                </div>
+            )}
+
+            <div className="space-y-2 border-t border-slate-100 p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    {mediaType === "image" && "Изображение"}
+                    {mediaType === "video" && "Видео"}
+                    {mediaType === "audio" && "Аудио"}
+                    {mediaType === "document" && "Документ"}
+                </p>
+
+                <p className="break-all text-sm font-medium text-slate-900">
+                    {fileName}
+                </p>
+
+                {caption && (
+                    <p className="text-sm leading-6 text-slate-600">{caption}</p>
+                )}
+            </div>
+        </article>
+    );
+}
 
 export default function CardPage() {
     const { slug } = useParams();
@@ -28,6 +125,29 @@ export default function CardPage() {
         loadCard();
     }, [slug]);
 
+    const imageUrl = useMemo(() => {
+        if (!card?.main_image) {
+            return null;
+        }
+
+        if (card.main_image.startsWith("http")) {
+            return card.main_image;
+        }
+
+        return `${
+            import.meta.env.VITE_MEDIA_BASE_URL || "http://127.0.0.1:8000"
+        }${card.main_image}`;
+    }, [card]);
+
+    const sectionSlug = card?.section_slug || card?.section?.slug || null;
+    const sectionTitle = card?.section_title || card?.section?.title || "Раздел";
+
+    const mediaItems = Array.isArray(card?.media_items)
+        ? [...card.media_items].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        )
+        : [];
+
     if (isLoading) {
         return (
             <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
@@ -51,18 +171,6 @@ export default function CardPage() {
             </div>
         );
     }
-
-    const imageUrl = card.main_image
-        ? card.main_image.startsWith("http")
-            ? card.main_image
-            : `${import.meta.env.VITE_MEDIA_BASE_URL || "http://127.0.0.1:8000"}${card.main_image}`
-        : null;
-
-    const sectionSlug =
-        card.section_slug || card.section?.slug || null;
-
-    const sectionTitle =
-        card.section_title || card.section?.title || "Раздел";
 
     return (
         <div className="space-y-8">
@@ -137,6 +245,29 @@ export default function CardPage() {
                     </div>
                 </div>
             </article>
+
+            <section className="space-y-5">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        Вложения карточки
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                        Дополнительные изображения, видео, аудио и документы.
+                    </p>
+                </div>
+
+                {mediaItems.length === 0 ? (
+                    <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                        У этой карточки пока нет вложений.
+                    </div>
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {mediaItems.map((item) => (
+                            <MediaItemCard key={item.id} item={item} />
+                        ))}
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

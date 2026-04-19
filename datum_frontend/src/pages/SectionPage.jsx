@@ -169,6 +169,13 @@ export default function SectionPage() {
                             Редактировать секцию
                         </Link>
 
+                        <Link
+                            to={`/sections/${section.slug}/cards/create`}
+                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            + Добавить карточку
+                        </Link>
+
                         <button
                             type="button"
                             onClick={() => {
