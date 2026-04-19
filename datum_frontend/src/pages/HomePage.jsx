@@ -1,150 +1,246 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const features = [
     {
-        title: "Проекты",
+        title: "Аналитические системы",
         description:
-            "Каталог проектов компании с описанием и отображением географии деятельности.",
+            "Разработка и внедрение информационных систем для мониторинга, контроля, учета и поддержки управленческих решений.",
     },
     {
-        title: "Справочная информация",
+        title: "Геоинформационные решения",
         description:
-            "База знаний с разделами, подразделами и карточками для хранения полезных материалов.",
+            "Создание web-ГИС и решений с пространственными данными для государственного сектора, инфраструктурных предприятий и бизнеса.",
     },
     {
-        title: "Роутинг и ссылки",
+        title: "Веб-разработка под ключ",
         description:
-            "У каждой сущности будет отдельная страница, чтобы можно было делиться прямыми ссылками.",
+            "Проектирование, разработка и развитие корпоративных порталов, отраслевых сервисов и прикладных веб-приложений.",
+    },
+    {
+        title: "Внедрение и сопровождение",
+        description:
+            "Адаптация, развитие и техническая поддержка решений на всех этапах эксплуатации.",
     },
 ];
 
-const steps = [
-    "Просматривать описание компании и структуру портала",
-    "Открывать список проектов и изучать их карточки",
-    "Переходить по разделам и карточкам базы знаний",
-    "Авторизоваться для дальнейшей работы с контентом",
+const highlights = [
+    { value: "с 2014", label: "развитие собственных ИТ-решений" },
+    { value: "ИТ", label: "аккредитованная компания" },
+    { value: "DATUM GIS", label: "собственная web-ГИС платформа" },
+    { value: "B2G / B2B", label: "проекты для государства и бизнеса" },
 ];
 
 export default function HomePage() {
+    const { isAuthenticated } = useAuth();
     return (
-        <div className="space-y-12">
-            <section className="grid gap-8 rounded-3xl bg-white p-8 shadow-sm md:grid-cols-2 md:p-10">
-                <div className="space-y-5">
-          <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-            Корпоративный портал
-          </span>
-
-                    <h1 className="text-4xl font-bold leading-tight text-slate-900 md:text-5xl">
-                        Datum — единая точка доступа к проектам и знаниям компании
-                    </h1>
-
-                    <p className="max-w-2xl text-base leading-7 text-slate-600">
-                        Платформа объединяет информацию о проектах компании и внутреннюю
-                        справочную базу знаний, чтобы сотрудники быстрее находили нужные
-                        материалы и могли делиться ими по ссылке.
-                    </p>
-
-                    <div className="flex flex-wrap gap-3">
-                        <Link
-                            to="/projects"
-                            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                        >
-                            Перейти к проектам
-                        </Link>
-
-                        <Link
-                            to="/login"
-                            className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                        >
-                            Войти
-                        </Link>
-                    </div>
+        <div className="bg-slate-100">
+            <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+                <div className="absolute inset-0 opacity-20">
+                    <div className="absolute left-[-80px] top-[-80px] h-72 w-72 rounded-full bg-cyan-400 blur-3xl" />
+                    <div className="absolute bottom-[-120px] right-[-40px] h-80 w-80 rounded-full bg-blue-500 blur-3xl" />
                 </div>
 
-                <div className="rounded-3xl bg-slate-900 p-6 text-white">
-                    <p className="text-sm text-slate-300">Основные возможности</p>
+                <div className="relative mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-10 lg:py-28">
+                    <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_0.75fr]">
+                        <div>
+                            <div className="mb-5 inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-slate-200 backdrop-blur">
+                                DATUM Soft
+                            </div>
 
-                    <div className="mt-6 space-y-4">
-                        <div className="rounded-2xl bg-white/10 p-4">
-                            <h3 className="text-lg font-semibold">Проекты на карте</h3>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">
-                                Карточки проектов будут связаны с геоданными и отображением на
-                                карте.
+                            <h1 className="max-w-4xl text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+                                Разработка и внедрение
+                                <span className="block text-cyan-300">
+                  информационных систем
+                </span>
+                            </h1>
+
+                            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
+                                DATUM Soft — аккредитованная ИТ-компания, специализирующаяся на
+                                разработке аналитических информационных систем для
+                                государственного сектора, естественных монополий,
+                                инфраструктурных предприятий и крупного бизнеса.
                             </p>
+
+                            <p className="mt-4 max-w-3xl text-base leading-8 text-slate-400 sm:text-lg">
+                                Компания развивает собственные цифровые продукты и решения,
+                                включая web-ГИС DATUM GIS, предназначенную для задач
+                                мониторинга, контроля и аналитики пространственно привязанных
+                                данных.
+                            </p>
+
+                            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                                <Link
+                                    to="/projects"
+                                    className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+                                >
+                                    Смотреть проекты
+                                </Link>
+
+                                {!isAuthenticated && (
+                                    <Link
+                                        to="/login"
+                                        className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                                    >
+                                        Войти в систему
+                                    </Link>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="rounded-2xl bg-white/10 p-4">
-                            <h3 className="text-lg font-semibold">Структурированная база знаний</h3>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">
-                                Разделы, подразделы, карточки, изображения, ссылки и другие
-                                материалы в единой системе.
-                            </p>
-                        </div>
-
-                        <div className="rounded-2xl bg-white/10 p-4">
-                            <h3 className="text-lg font-semibold">Авторизация и роли</h3>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">
-                                Позже здесь будет разграничение доступа между пользователями и
-                                администраторами.
-                            </p>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                            {highlights.map((item) => (
+                                <div
+                                    key={item.label}
+                                    className="rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur"
+                                >
+                                    <div className="text-2xl font-bold text-cyan-300">
+                                        {item.value}
+                                    </div>
+                                    <div className="mt-2 text-sm leading-6 text-slate-300">
+                                        {item.label}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Что есть в системе</h2>
-                    <p className="mt-2 text-slate-600">
-                        Основные блоки платформы, которые будем постепенно реализовывать.
-                    </p>
-                </div>
+            <section className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-10">
+                <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+                    <div>
+            <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">
+              О компании
+            </span>
+                        <h2 className="mt-3 text-3xl font-bold text-slate-900 sm:text-4xl">
+                            Технологические решения для цифрового развития
+                        </h2>
+                    </div>
 
-                <div className="grid gap-6 md:grid-cols-3">
-                    {features.map((feature) => (
-                        <article
-                            key={feature.title}
-                            className="rounded-2xl bg-white p-6 shadow-sm"
-                        >
-                            <h3 className="text-xl font-semibold text-slate-900">
-                                {feature.title}
-                            </h3>
-                            <p className="mt-3 text-sm leading-6 text-slate-600">
-                                {feature.description}
-                            </p>
-                        </article>
-                    ))}
+                    <div className="space-y-5 text-base leading-8 text-slate-700">
+                        <p>
+                            С 2014 года DATUM Soft выросла из небольшой команды,
+                            внедрявшей сторонние геоинформационные системы, в самостоятельную
+                            профильную ИТ-компанию с собственными программными продуктами и
+                            экспертизой в области прикладных информационных систем.
+                        </p>
+                        <p>
+                            Компания реализует проекты по разработке и внедрению различных
+                            АИС, геоинформационных платформ и специализированных веб-решений
+                            для государственных структур, естественных монополий,
+                            инфраструктурных предприятий и крупного бизнеса.
+                        </p>
+                    </div>
                 </div>
             </section>
 
-            <section className="grid gap-6 md:grid-cols-2">
-                <article className="rounded-2xl bg-white p-6 shadow-sm">
-                    <h2 className="text-2xl font-bold text-slate-900">Как это будет работать</h2>
-                    <ul className="mt-4 space-y-3">
-                        {steps.map((step) => (
-                            <li
-                                key={step}
-                                className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700"
+            <section className="mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-10">
+                <div className="rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-slate-200 sm:p-10">
+                    <div className="max-w-3xl">
+            <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">
+              Основные направления
+            </span>
+                        <h2 className="mt-3 text-3xl font-bold text-slate-900 sm:text-4xl">
+                            Чем занимается DATUM Soft
+                        </h2>
+                        <p className="mt-4 text-base leading-8 text-slate-600">
+                            Компания сочетает разработку собственных продуктов, внедрение
+                            информационных систем и развитие решений под задачи заказчика. По
+                            материалам сайта в фокусе — аналитические ИС, геоинформационные
+                            решения, веб-разработка и сопровождение внедренных систем.
+                        </p>
+                    </div>
+
+                    <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                        {features.map((item) => (
+                            <article
+                                key={item.title}
+                                className="rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-md"
                             >
-                                {step}
-                            </li>
+                                <div className="mb-4 h-10 w-10 rounded-2xl bg-cyan-100" />
+                                <h3 className="text-xl font-semibold text-slate-900">
+                                    {item.title}
+                                </h3>
+                                <p className="mt-3 text-sm leading-7 text-slate-600">
+                                    {item.description}
+                                </p>
+                            </article>
                         ))}
-                    </ul>
-                </article>
+                    </div>
+                </div>
+            </section>
 
-                <article className="rounded-2xl bg-white p-6 shadow-sm">
-                    <h2 className="text-2xl font-bold text-slate-900">Что делаем дальше</h2>
-                    <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                        <p>
-                            Следующий этап — подключить API и вывести реальные данные на
-                            страницу проектов.
-                        </p>
-                        <p>
-                            После этого можно будет сделать карточки проектов, а затем перейти
-                            к авторизации и базе знаний.
+            <section className="mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-10">
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <div className="rounded-3xl bg-slate-900 p-8 text-white">
+                        <h3 className="text-2xl font-bold">Собственная платформа</h3>
+                        <p className="mt-4 text-sm leading-7 text-slate-300">
+                            DATUM GIS позиционируется как многофункциональная
+                            геоинформационная система для мониторинга, контроля и аналитики
+                            большого массива данных в пространственной привязке.
                         </p>
                     </div>
-                </article>
+
+                    <div className="rounded-3xl bg-white p-8 ring-1 ring-slate-200">
+                        <h3 className="text-2xl font-bold text-slate-900">
+                            Проекты для разных отраслей
+                        </h3>
+                        <p className="mt-4 text-sm leading-7 text-slate-600">
+                            На сайте компании представлены кейсы и внедрения для органов
+                            власти, региональных систем, водоканалов и других инфраструктурных
+                            организаций.
+                        </p>
+                    </div>
+
+                    <div className="rounded-3xl bg-cyan-50 p-8 ring-1 ring-cyan-100">
+                        <h3 className="text-2xl font-bold text-slate-900">
+                            Единая цифровая среда
+                        </h3>
+                        <p className="mt-4 text-sm leading-7 text-slate-700">
+                            Эта платформа помогает централизованно представить информацию о
+                            проектах компании и обеспечить удобную навигацию по корпоративным
+                            материалам для сотрудников.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="mx-auto max-w-7xl px-6 pb-20 sm:px-8 lg:px-10">
+                <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-cyan-600 to-blue-700 p-8 text-white sm:p-10 lg:p-12">
+                    <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="max-w-3xl">
+              <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                Начать работу
+              </span>
+                            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
+                                Изучите проекты DATUM Soft
+                            </h2>
+                            <p className="mt-4 text-base leading-8 text-cyan-50">
+                                Откройте список проектов компании, ознакомьтесь с направлениями
+                                деятельности и используйте систему как единую точку доступа к
+                                проектной информации.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col gap-4 sm:flex-row lg:flex-col">
+                            <Link
+                                to="/projects"
+                                className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+                            >
+                                Перейти к проектам
+                            </Link>
+                            {!isAuthenticated && (
+                                <Link
+                                    to="/login"
+                                    className="inline-flex items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                                >
+                                    Войти в систему
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </section>
         </div>
     );
