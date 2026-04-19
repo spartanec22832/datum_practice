@@ -1,10 +1,18 @@
+import re
 from django.conf import settings
 from django.db import models
-from django.template.defaultfilters import slugify
+from slugify import slugify
 
 
-def generate_unique_slug(model_class, value, instance_pk=None):
-    base_slug = slugify(value)[:200] or "project"
+def normalize_title(value: str) -> str:
+    return re.sub(r"\s+", " ", (value or "").strip())
+
+def build_transliterated_slug(value: str, fallback: str) -> str:
+    return slugify(value or "", lowercase=True, separator="-", max_length=200) or fallback
+
+
+def generate_unique_slug(model_class, value, instance_pk=None, fallback="project"):
+    base_slug = build_transliterated_slug(value, fallback)
     slug = base_slug
     suffix = 1
 
@@ -14,7 +22,9 @@ def generate_unique_slug(model_class, value, instance_pk=None):
             queryset = queryset.exclude(pk=instance_pk)
         if not queryset.exists():
             return slug
-        slug = f"{base_slug[:190]}-{suffix}"
+
+        suffix_part = f"-{suffix}"
+        slug = f"{base_slug[:200 - len(suffix_part)]}{suffix_part}"
         suffix += 1
 
 
@@ -40,8 +50,9 @@ class Project(models.Model):
         ordering = ["title"]
 
     def save(self, *args, **kwargs):
+        self.title = normalize_title(self.title)
         if not self.slug:
-            self.slug = generate_unique_slug(Project, self.title, self.pk)
+            self.slug = generate_unique_slug(Project, self.title, self.pk, fallback="project")
         super().save(*args, **kwargs)
 
     def __str__(self):
