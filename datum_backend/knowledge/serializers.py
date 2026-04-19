@@ -56,17 +56,35 @@ class CardReadSerializer(serializers.ModelSerializer):
 
 
 class CardWriteSerializer(serializers.ModelSerializer):
+    author_username = serializers.CharField(source="author.username", read_only=True)
+    section_slug = serializers.CharField(source="section.slug", read_only=True)
+
     class Meta:
         model = Card
         fields = (
             "id",
             "title",
+            "slug",
             "summary",
             "content",
             "section",
+            "section_slug",
+            "author",
+            "author_username",
+            "main_image",
             "is_published",
+            "created_at",
+            "updated_at",
         )
-        read_only_fields = ("id",)
+        read_only_fields = (
+            "id",
+            "slug",
+            "author",
+            "author_username",
+            "section_slug",
+            "created_at",
+            "updated_at",
+        )
 
 
 class SectionSerializer(serializers.ModelSerializer):

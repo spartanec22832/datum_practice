@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 
 from .models import Card, CardMedia, Section
 from .permissions import (
@@ -73,6 +73,7 @@ class SectionManageView(generics.RetrieveUpdateDestroyAPIView):
 
 class CardListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -106,6 +107,7 @@ class CardDetailView(generics.RetrieveAPIView):
 class CardManageView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Card.objects.select_related("section", "author").prefetch_related("media_items")
     permission_classes = [IsAuthorOrAdmin]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
     http_method_names = ["get", "put", "patch", "delete", "options"]
 
     def get_serializer_class(self):
