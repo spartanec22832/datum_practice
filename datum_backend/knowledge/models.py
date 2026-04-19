@@ -1,13 +1,20 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.template.defaultfilters import slugify
+from slugify import slugify
 import os
 import uuid
+import re
+
+def normalize_title(value: str) -> str:
+    return re.sub(r"\s+", " ", (value or "").strip())
+
+def build_transliterated_slug(value: str, fallback: str) -> str:
+    return slugify(value or "", lowercase=True, separator="-", max_length=200) or fallback
 
 
 def generate_unique_slug(model_class, value, instance_pk=None, fallback="item"):
-    base_slug = slugify(value)[:200] or fallback
+    base_slug = build_transliterated_slug(value, fallback)
     slug = base_slug
     suffix = 1
 
@@ -17,7 +24,9 @@ def generate_unique_slug(model_class, value, instance_pk=None, fallback="item"):
             queryset = queryset.exclude(pk=instance_pk)
         if not queryset.exists():
             return slug
-        slug = f"{base_slug[:190]}-{suffix}"
+
+        suffix_part = f"-{suffix}"
+        slug = f"{base_slug[:200 - len(suffix_part)]}{suffix_part}"
         suffix += 1
 
 
@@ -64,6 +73,7 @@ class Section(models.Model):
             raise ValidationError({"parent": "Section cannot be its own parent."})
 
     def save(self, *args, **kwargs):
+        self.title = normalize_title(self.title)
         self.full_clean()
         if not self.slug:
             self.slug = generate_unique_slug(Section, self.title, self.pk, fallback="section")
@@ -103,6 +113,7 @@ class Card(models.Model):
         ordering = ("title",)
 
     def save(self, *args, **kwargs):
+        self.title = normalize_title(self.title)
         old_image = None
         if self.pk:
             try:
