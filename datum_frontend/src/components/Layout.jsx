@@ -84,16 +84,35 @@ export default function Layout() {
     return (
         <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
             <header className="border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800/80 dark:bg-[#11192e]/95">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                    <div>
+                <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
+                    <div className="shrink-0 text-left">
                         <p className="text-xl font-bold text-slate-900 dark:text-slate-50">Datum</p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Банк знаний компании
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <nav className="flex items-center gap-2">
+                    <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-2 lg:flex">
+                        <NavLink to="/" className={navLinkClass} end>
+                            {"\u0413\u043b\u0430\u0432\u043d\u0430\u044f"}
+                        </NavLink>
+                        <NavLink to="/projects" className={navLinkClass}>
+                            {"\u041f\u0440\u043e\u0435\u043a\u0442\u044b"}
+                        </NavLink>
+                        {isAuthenticated && (
+                            <NavLink to="/sections" className={navLinkClass}>
+                                {"\u0421\u043f\u0440\u0430\u0432\u043e\u0447\u043d\u0438\u043a"}
+                            </NavLink>
+                        )}
+                        {!isAuthenticated && (
+                            <NavLink to="/login" className={navLinkClass}>
+                                {"\u0412\u0445\u043e\u0434"}
+                            </NavLink>
+                        )}
+                    </nav>
+
+                    <div className="ml-auto flex items-center justify-end gap-4">
+                        <nav className="flex items-center gap-2 lg:hidden">
                             <NavLink to="/" className={navLinkClass} end>
                                 Главная
                             </NavLink>
@@ -160,7 +179,7 @@ export default function Layout() {
                             </span>
                         </button>
 
-                        <div className="min-w-[180px] text-right">
+                        <div className="min-w-[180px] shrink-0 text-right">
                             {isAuthLoading ? (
                                 <p className="text-sm text-slate-500 dark:text-slate-400">
                                     Проверка входа...

@@ -1,26 +1,31 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { BarChart3, Map, MonitorSmartphone, Settings2 } from "lucide-react";
 
 const features = [
     {
         title: "Аналитические системы",
         description:
             "Разработка и внедрение информационных систем для мониторинга, контроля, учета и поддержки управленческих решений.",
+        icon: BarChart3,
     },
     {
         title: "Геоинформационные решения",
         description:
             "Создание web-ГИС и решений с пространственными данными для государственного сектора, инфраструктурных предприятий и бизнеса.",
+        icon: Map,
     },
     {
         title: "Веб-разработка под ключ",
         description:
             "Проектирование, разработка и развитие корпоративных порталов, отраслевых сервисов и прикладных веб-приложений.",
+        icon: MonitorSmartphone,
     },
     {
         title: "Внедрение и сопровождение",
         description:
             "Адаптация, развитие и техническая поддержка решений на всех этапах эксплуатации.",
+        icon: Settings2,
     },
 ];
 
@@ -153,27 +158,37 @@ export default function HomePage() {
                     </div>
 
                     <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                        {features.map((item) => (
-                            <article
-                                key={item.title}
-                                className="rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-md dark:bg-slate-900/80 dark:ring-slate-800"
-                            >
-                                <div className="mb-4 h-10 w-10 rounded-2xl bg-cyan-100" />
-                                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
-                                    {item.title}
-                                </h3>
-                                <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                                    {item.description}
-                                </p>
-                            </article>
-                        ))}
+                        {features.map((item) => {
+                            const Icon = item.icon;
+
+                            return (
+                                <article
+                                    key={item.title}
+                                    className="min-w-0 rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-md dark:bg-slate-900/80 dark:ring-slate-800"
+                                >
+                                    <div
+                                        className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 dark:bg-cyan-200/90">
+                                        <Icon className="h-5 w-5 text-cyan-700" strokeWidth={2}/>
+                                    </div>
+
+                                    <h3 className="text-lg font-semibold leading-tight text-slate-900 [overflow-wrap:anywhere] dark:text-slate-50">
+                                        {item.title}
+                                    </h3>
+
+                                    <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                                        {item.description}
+                                    </p>
+                                </article>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
 
             <section className="mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-10">
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-white">
+                    <div
+                        className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-white">
                         <h3 className="text-2xl font-bold">Собственная платформа</h3>
                         <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
                             DATUM GIS позиционируется как многофункциональная
@@ -193,7 +208,7 @@ export default function HomePage() {
                         </p>
                     </div>
 
-                    <div className="rounded-3xl bg-cyan-50 p-8 ring-1 ring-cyan-100 dark:bg-cyan-950/30 dark:ring-cyan-900/40">
+                    <div  className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-white">
                         <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                             Единая цифровая среда
                         </h3>
