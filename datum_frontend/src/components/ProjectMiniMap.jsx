@@ -1,13 +1,15 @@
 import { useEffect, useRef } from "react";
+import GeoJSON from "ol/format/GeoJSON";
 import Map from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
+import { fromLonLat } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
-import GeoJSON from "ol/format/GeoJSON";
-import { fromLonLat } from "ol/proj";
-import { Fill, Stroke, Style, Circle as CircleStyle } from "ol/style";
+import { defaults as defaultControls } from "ol/control/defaults";
+import { defaults as defaultInteractions } from "ol/interaction/defaults";
+import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
 
 function getProjectStyle() {
     return new Style({
@@ -26,7 +28,11 @@ function getProjectStyle() {
     });
 }
 
-export default function ProjectMiniMap({ geojson }) {
+export default function ProjectMiniMap({
+    geojson,
+    interactive = true,
+    className = "h-[260px] w-full overflow-hidden rounded-3xl",
+}) {
     const mapElementRef = useRef(null);
     const mapRef = useRef(null);
     const vectorSourceRef = useRef(null);
@@ -45,6 +51,21 @@ export default function ProjectMiniMap({ geojson }) {
 
         const map = new Map({
             target: mapElementRef.current,
+            controls: interactive
+                ? undefined
+                : defaultControls({ attribution: false, rotate: false, zoom: false }),
+            interactions: interactive
+                ? undefined
+                : defaultInteractions({
+                      altShiftDragRotate: false,
+                      doubleClickZoom: false,
+                      dragPan: false,
+                      keyboard: false,
+                      mouseWheelZoom: false,
+                      pinchRotate: false,
+                      pinchZoom: false,
+                      shiftDragZoom: false,
+                  }),
             layers: [
                 new TileLayer({
                     source: new OSM(),
@@ -64,7 +85,7 @@ export default function ProjectMiniMap({ geojson }) {
             map.setTarget(undefined);
             mapRef.current = null;
         };
-    }, []);
+    }, [interactive]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -94,18 +115,13 @@ export default function ProjectMiniMap({ geojson }) {
                 map.getView().fit(vectorSource.getExtent(), {
                     padding: [30, 30, 30, 30],
                     maxZoom: 15,
-                    duration: 400,
+                    duration: interactive ? 400 : 0,
                 });
             }
         } catch (error) {
             console.error("Ошибка отображения GeoJSON проекта:", error);
         }
-    }, [geojson]);
+    }, [geojson, interactive]);
 
-    return (
-        <div
-            ref={mapElementRef}
-            className="h-[260px] w-full overflow-hidden rounded-3xl"
-        />
-    );
+    return <div ref={mapElementRef} className={className} />;
 }

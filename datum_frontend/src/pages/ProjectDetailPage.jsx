@@ -1,8 +1,8 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getProjectBySlug, deleteProject } from "../services/projects";
-import { useAuth } from "../context/AuthContext";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { deleteProject, getProjectBySlug } from "../services/projects";
 import ProjectMiniMap from "../components/ProjectMiniMap";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProjectDetailPage() {
     const { slug } = useParams();
@@ -12,10 +12,11 @@ export default function ProjectDetailPage() {
     const [project, setProject] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+    const [isMapPreviewOpen, setIsMapPreviewOpen] = useState(false);
 
     useEffect(() => {
         async function loadProject() {
@@ -35,6 +36,28 @@ export default function ProjectDetailPage() {
 
         loadProject();
     }, [slug]);
+
+    useEffect(() => {
+        if (!isImagePreviewOpen && !isMapPreviewOpen) {
+            return undefined;
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === "Escape") {
+                setIsImagePreviewOpen(false);
+                setIsMapPreviewOpen(false);
+            }
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isImagePreviewOpen, isMapPreviewOpen]);
 
     async function handleDeleteProject() {
         if (!project) {
@@ -93,30 +116,33 @@ export default function ProjectDetailPage() {
     const imageUrl = project.main_image
         ? project.main_image.startsWith("http")
             ? project.main_image
-            : `${
-                import.meta.env.VITE_MEDIA_BASE_URL || "http://127.0.0.1:8000"
-            }${project.main_image}`
+            : `${import.meta.env.VITE_MEDIA_BASE_URL || "http://127.0.0.1:8000"}${project.main_image}`
         : null;
+
+    const hasGeojson =
+        project.geojson && typeof project.geojson === "object" && project.geojson.type;
 
     return (
         <div className="space-y-8">
             <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
                 <section className="space-y-6">
                     <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <div className="flex min-w-0 items-center gap-2 text-sm text-slate-400">
                             <Link to="/projects" className="transition hover:text-slate-700 dark:text-slate-200">
                                 Проекты
                             </Link>
                             <span>/</span>
-                            <span className="truncate text-slate-500 dark:text-slate-400">{project.title}</span>
+                            <span className="min-w-0 truncate text-slate-500 dark:text-slate-400">
+                                {project.title}
+                            </span>
                         </div>
 
                         <div className="space-y-3">
-                            <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                            <h1 className="break-words text-4xl font-bold tracking-tight text-slate-900 [overflow-wrap:anywhere] dark:text-slate-50">
                                 {project.title}
                             </h1>
 
-                            <p className="text-base leading-7 text-slate-600 dark:text-slate-300">
+                            <p className="break-words text-base leading-7 text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">
                                 {project.short_description || "Краткое описание отсутствует."}
                             </p>
                         </div>
@@ -125,7 +151,7 @@ export default function ProjectDetailPage() {
                             <div className="flex flex-wrap gap-3">
                                 <Link
                                     to={`/projects/${project.slug}/edit`}
-                                    className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+                                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                                 >
                                     Редактировать проект
                                 </Link>
@@ -136,7 +162,7 @@ export default function ProjectDetailPage() {
                                         setDeleteConfirmation("");
                                         setIsDeleteModalOpen(true);
                                     }}
-                                    className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
+                                    className="inline-flex items-center justify-center rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                                 >
                                     Удалить проект
                                 </button>
@@ -150,13 +176,20 @@ export default function ProjectDetailPage() {
                         </div>
                     )}
 
-                    <article className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+                    <article className="overflow-hidden rounded-b-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                         {imageUrl ? (
-                            <img
-                                src={imageUrl}
-                                alt={project.title}
-                                className="h-[360px] w-full object-cover"
-                            />
+                            <button
+                                type="button"
+                                onClick={() => setIsImagePreviewOpen(true)}
+                                className="block w-full cursor-zoom-in bg-transparent text-left transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+                                aria-label="Открыть изображение проекта"
+                            >
+                                <img
+                                    src={imageUrl}
+                                    alt={project.title}
+                                    className="h-[360px] w-full object-cover"
+                                />
+                            </button>
                         ) : (
                             <div className="flex h-[360px] items-center justify-center bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                                 Изображение проекта отсутствует
@@ -165,19 +198,18 @@ export default function ProjectDetailPage() {
 
                         <div className="space-y-5 p-6">
                             <div className="flex flex-wrap gap-4 text-sm text-slate-400">
-                <span>
-                  География:{" "}
-                    {project.geojson?.properties?.label || "Не указана"}
-                </span>
                                 <span>
-                  Обновлено{" "}
+                                    География: {project.geojson?.properties?.label || "Не указана"}
+                                </span>
+                                <span>
+                                    Обновлено{" "}
                                     {project.updated_at
                                         ? new Date(project.updated_at).toLocaleDateString("ru-RU")
                                         : "—"}
-                </span>
+                                </span>
                             </div>
 
-                            <div className="space-y-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
+                            <div className="space-y-4 break-words text-sm leading-7 text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200">
                                 <p>
                                     {project.full_description || "Полное описание отсутствует."}
                                 </p>
@@ -186,41 +218,150 @@ export default function ProjectDetailPage() {
                     </article>
                 </section>
 
-                <aside className="space-y-6">
-                    <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
-                        <div className="flex items-center justify-between px-5 py-4">
-              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-900/80 dark:text-slate-400">
-                Карта
-              </span>
+                {hasGeojson && (
+                    <aside className="space-y-6">
+                        <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+                            <div className="space-y-4 px-5 py-5">
+                                <div className="flex justify-center gap-3">
+                                    <span className="rounded-full bg-slate-100 px-3 py-1 text-base font-medium text-slate-600 dark:bg-slate-900/80 dark:text-slate-400">
+                                        Локация текущего проекта
+                                    </span>
+                                </div>
 
-                            <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-                Карта проекта
-              </span>
-                        </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMapPreviewOpen(true)}
+                                    className="block w-full overflow-hidden rounded-3xl bg-transparent text-left transition hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+                                    aria-label="Открыть большую карту проекта"
+                                >
+                                    <ProjectMiniMap
+                                        geojson={project.geojson}
+                                        interactive={false}
+                                        className="h-[220px] w-full overflow-hidden rounded-3xl"
+                                    />
+                                </button>
 
-                        <div className="px-5 pb-5">
-                            <ProjectMiniMap geojson={project.geojson} />
-                        </div>
-                    </section>
-
-                    <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
-            <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-900/80 dark:text-slate-400">
-              Управление
-            </span>
-
-                        <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                            <p>
-                                По ТЗ проекты редактируются администратором. Пользовательский
-                                фронтенд здесь даёт быстрый просмотр и навигацию.
-                            </p>
-                            <p>
-                                Позже сюда можно добавить служебные поля, ссылки и связанный
-                                контент проекта.
-                            </p>
-                        </div>
-                    </section>
-                </aside>
+                                <div className="space-y-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsMapPreviewOpen(true)}
+                                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
+                                    >
+                                        Открыть большую карту
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </aside>
+                )}
             </div>
+
+            {isImagePreviewOpen && imageUrl && (
+                <div
+                    className="fixed inset-0 z-50 bg-slate-950/90 p-4 backdrop-blur-sm sm:p-6"
+                    onClick={() => setIsImagePreviewOpen(false)}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Увеличенное изображение проекта"
+                >
+                    <button
+                        type="button"
+                        onClick={() => setIsImagePreviewOpen(false)}
+                        className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-900/80 text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 sm:right-6 sm:top-6"
+                        aria-label="Закрыть просмотр изображения"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                        >
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+
+                    <div
+                        className="flex h-full items-center justify-center"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <img
+                            src={imageUrl}
+                            alt={project.title}
+                            className="max-h-[90vh] w-auto max-w-[94vw] rounded-2xl object-contain shadow-2xl"
+                        />
+                    </div>
+                </div>
+            )}
+
+            {isMapPreviewOpen && hasGeojson && (
+                <div
+                    className="fixed inset-0 z-50 bg-slate-950/88 p-4 backdrop-blur-sm sm:p-6"
+                    onClick={() => setIsMapPreviewOpen(false)}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Большая карта проекта"
+                >
+                    <button
+                        type="button"
+                        onClick={() => setIsMapPreviewOpen(false)}
+                        className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-900/80 text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 sm:right-6 sm:top-6"
+                        aria-label="Закрыть большую карту"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                        >
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+
+                    <div
+                        className="mx-auto flex h-full w-full max-w-6xl items-center justify-center"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="w-full overflow-hidden rounded-[32px] border border-slate-800 bg-white shadow-2xl dark:bg-slate-900">
+                            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                        Большая карта проекта
+                                    </p>
+                                    <p className="text-sm text-slate-400 dark:text-slate-500">
+                                        {project.geojson?.properties?.label || "География проекта"}
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMapPreviewOpen(false)}
+                                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-800"
+                                >
+                                    Закрыть
+                                </button>
+                            </div>
+
+                            <div className="p-6">
+                                <ProjectMiniMap
+                                    geojson={project.geojson}
+                                    interactive={true}
+                                    className="h-[72vh] w-full overflow-hidden rounded-[28px]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
@@ -235,7 +376,7 @@ export default function ProjectDetailPage() {
                                 указано ниже:
                             </p>
 
-                            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
+                            <div className="break-words rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 [overflow-wrap:anywhere] dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
                                 {project.title}
                             </div>
 
@@ -251,9 +392,7 @@ export default function ProjectDetailPage() {
                                     id="delete-confirmation"
                                     type="text"
                                     value={deleteConfirmation}
-                                    onChange={(event) =>
-                                        setDeleteConfirmation(event.target.value)
-                                    }
+                                    onChange={(event) => setDeleteConfirmation(event.target.value)}
                                     placeholder="Введите точное название проекта"
                                     className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                 />

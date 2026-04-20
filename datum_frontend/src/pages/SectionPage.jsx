@@ -198,7 +198,7 @@ export default function SectionPage() {
                     {isAdmin && (
                         <Link
                             to={`/sections/${section.slug}/edit`}
-                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+                            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                         >
                             Редактировать секцию
                         </Link>
@@ -207,7 +207,7 @@ export default function SectionPage() {
                     {canCreateKnowledge && (
                         <Link
                             to={`/sections/${section.slug}/cards/create`}
-                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+                            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                         >
                             + Добавить карточку
                         </Link>
@@ -220,7 +220,7 @@ export default function SectionPage() {
                                 setDeleteConfirmation("");
                                 setIsDeleteModalOpen(true);
                             }}
-                            className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
+                            className="inline-flex items-center justify-center rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                         >
                             Удалить секцию
                         </button>

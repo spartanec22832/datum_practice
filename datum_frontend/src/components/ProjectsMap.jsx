@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef } from "react";
+import GeoJSON from "ol/format/GeoJSON";
 import Map from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
+import { fromLonLat } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
-import GeoJSON from "ol/format/GeoJSON";
-import { fromLonLat } from "ol/proj";
-import { Fill, Stroke, Style, Circle as CircleStyle } from "ol/style";
+import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
 
 function getDefaultStyle() {
     return new Style({
@@ -43,15 +43,12 @@ function getActiveStyle() {
     });
 }
 
-export default function ProjectsMap({
-                                        projects,
-                                        activeProject,
-                                        onProjectClick,
-                                    }) {
+export default function ProjectsMap({ projects, activeProject, onProjectClick }) {
     const mapElementRef = useRef(null);
     const mapRef = useRef(null);
     const vectorLayerRef = useRef(null);
     const vectorSourceRef = useRef(null);
+    const activeProjectRef = useRef(null);
 
     const geoProjects = useMemo(() => {
         return projects.filter(
@@ -61,6 +58,10 @@ export default function ProjectsMap({
                 project.geojson.type
         );
     }, [projects]);
+
+    useEffect(() => {
+        activeProjectRef.current = activeProject;
+    }, [activeProject]);
 
     useEffect(() => {
         if (!mapElementRef.current || mapRef.current) {
@@ -74,7 +75,8 @@ export default function ProjectsMap({
             style: (feature) => {
                 const featureProject = feature.get("project");
                 const isActive =
-                    activeProject && featureProject?.id === activeProject.id;
+                    activeProjectRef.current &&
+                    featureProject?.id === activeProjectRef.current.id;
 
                 return isActive ? getActiveStyle() : getDefaultStyle();
             },
@@ -115,7 +117,7 @@ export default function ProjectsMap({
             map.setTarget(undefined);
             mapRef.current = null;
         };
-    }, [onProjectClick, activeProject]);
+    }, [onProjectClick]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -200,21 +202,30 @@ export default function ProjectsMap({
     }, [activeProject]);
 
     return (
-        <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <section
+            className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+            <div className="flex items-start justify-between px-5 py-4">
                 <div>
-                    <p className="text-sm font-medium text-slate-500">Карта проектов</p>
-                    <p className="text-sm text-slate-400">
-                        Наведи на карточку или нажми на неё, чтобы показать её область
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                        Карта проектов
+                    </p>
+                    <p className="text-sm text-slate-400 dark:text-slate-300">
+                        Нажми на карточку проекта или объект на карте, чтобы показать его область
                     </p>
                 </div>
 
-                <div className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
+                <div
+                    className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-950/80 dark:text-slate-300">
                     На карте: {geoProjects.length}
                 </div>
             </div>
 
-            <div ref={mapElementRef} className="h-[420px] w-full" />
+            <div className="border-t border-slate-200 dark:border-slate-800">
+                <div
+                    className="h-[420px] w-full bg-slate-50 dark:bg-slate-950/80"
+                    ref={mapElementRef}
+                />
+            </div>
         </section>
     );
 }

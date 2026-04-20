@@ -4,18 +4,27 @@ import { getProjects } from "../services/projects";
 import ProjectsMap from "../components/ProjectsMap";
 import { useAuth } from "../context/AuthContext";
 
-function ProjectCard({ project, isAdmin, isActive, onHover, onLeave, onFocusProject }) {
+function ProjectCard({ project, isAdmin, isActive, onSelectProject }) {
+    function handleKeyDown(event) {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onSelectProject(project);
+        }
+    }
+
     return (
         <article
-            onMouseEnter={() => onHover(project)}
-            onMouseLeave={onLeave}
-            className={`rounded-3xl border bg-white p-6 shadow-sm transition dark:bg-slate-900/90 ${
+            onClick={() => onSelectProject(project)}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            className={`flex h-full cursor-pointer flex-col rounded-3xl border bg-white p-6 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 dark:bg-slate-900/90 ${
                 isActive
                     ? "border-cyan-400 shadow-md ring-2 ring-cyan-500/20"
                     : "border-slate-200 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:hover:border-slate-700"
             }`}
         >
-            <div className="space-y-4">
+            <div className="flex h-full flex-col space-y-4">
                 <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -25,37 +34,30 @@ function ProjectCard({ project, isAdmin, isActive, onHover, onLeave, onFocusProj
                         {isAdmin &&
                             (project.is_published ? (
                                 <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
-                  Опубликовано
-                </span>
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
+                                    Опубликовано
+                                </span>
                             ) : (
                                 <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                  <span className="h-2 w-2 rounded-full bg-red-500" />
-                  Не опубликовано
-                </span>
+                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                    Не опубликовано
+                                </span>
                             ))}
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                    <h2 className="break-words text-2xl font-bold text-slate-900 [overflow-wrap:anywhere] dark:text-slate-50">
                         {project.title}
                     </h2>
                 </div>
 
-                <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
+                <p className="break-words text-sm leading-7 text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">
                     {project.short_description || "Краткое описание пока не заполнено."}
                 </p>
 
-                <div className="flex items-center justify-between gap-3 pt-2">
-                    <button
-                        type="button"
-                        onClick={() => onFocusProject(project)}
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                        Показать на карте
-                    </button>
-
+                <div className="mt-auto flex justify-end pt-2">
                     <Link
                         to={`/projects/${project.slug}`}
+                        onClick={(event) => event.stopPropagation()}
                         className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                     >
                         Открыть
@@ -137,32 +139,24 @@ export default function ProjectsPage() {
         navigate(`/projects/${project.slug}`);
     }
 
-    function handleProjectHover(project) {
-        setActiveProject(project);
-    }
-
-    function handleProjectLeave() {
-        setActiveProject(null);
-    }
-
-    function handleProjectFocus(project) {
+    function handleProjectSelect(project) {
         setActiveProject(project);
     }
 
     return (
         <div className="space-y-8">
             <section className="space-y-3">
-        <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
-          Проекты
-        </span>
+                <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                    Проекты
+                </span>
 
                 <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 md:text-5xl">
                     Карта и список проектных карточек
                 </h1>
 
                 <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    Наведи на карточку проекта или начни вводить текст в поиск, чтобы
-                    быстро найти нужный проект и увидеть его геометрию на карте.
+                    Нажми на карточку проекта или начни вводить текст в поиск, чтобы быстро
+                    найти нужный проект и увидеть его геометрию на карте.
                 </p>
             </section>
 
@@ -243,9 +237,7 @@ export default function ProjectsPage() {
                                         project={project}
                                         isAdmin={isAdmin}
                                         isActive={activeProject?.id === project.id}
-                                        onHover={handleProjectHover}
-                                        onLeave={handleProjectLeave}
-                                        onFocusProject={handleProjectFocus}
+                                        onSelectProject={handleProjectSelect}
                                     />
                                 ))}
                             </div>
