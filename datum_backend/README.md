@@ -38,6 +38,7 @@ CREATE DATABASE datum_db
 ```
 ### 6. Применить миграции, создать админа, запустить сервер
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
@@ -48,4 +49,10 @@ http://127.0.0.1:8000/
 
 Админ-панель:
 http://127.0.0.1:8000/admin/
+
+Swagger UI:
+http://127.0.0.1:8000/api/docs/swagger/
+
+Redoc:
+http://127.0.0.1:8000/api/docs/redoc/
 
