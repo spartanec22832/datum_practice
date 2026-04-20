@@ -180,7 +180,7 @@ export default function SectionsPage() {
                     </div>
                 )}
 
-                {!isLoading && !error && filteredSections.length > 0 && (
+                {!isLoading && !error && filteredSections.length >= 0 && (
                     <>
                         <div className="text-sm text-slate-500 dark:text-slate-400">
                             Найдено: {filteredSections.length}
