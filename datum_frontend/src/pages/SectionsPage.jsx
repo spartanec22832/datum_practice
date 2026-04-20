@@ -165,7 +165,7 @@ export default function SectionsPage() {
                 </div>
             )}
 
-            {!isLoading && !error && filteredSections.length > 0 && (
+            {!isLoading && !error && filteredSections.length >= 0 && (
                 <section className="space-y-5">
                     <div className="flex items-center justify-between">
                         <div>
