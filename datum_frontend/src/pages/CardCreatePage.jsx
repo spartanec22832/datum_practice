@@ -42,7 +42,7 @@ function getMediaType(fileName) {
 export default function CardCreatePage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
 
     const [section, setSection] = useState(null);
     const [formData, setFormData] = useState({
@@ -142,7 +142,7 @@ export default function CardCreatePage() {
             cardPayload.append("title", formData.title);
             cardPayload.append("summary", formData.summary);
             cardPayload.append("content", formData.content);
-            cardPayload.append("is_published", formData.is_published);
+            cardPayload.append("is_published", isAdmin ? String(formData.is_published) : "true");
             cardPayload.append("section", section.id);
 
             if (formData.main_image) {
@@ -176,15 +176,15 @@ export default function CardCreatePage() {
 
     if (isAuthLoading || isLoading) {
         return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                 Загрузка...
             </div>
         );
     }
 
-    if (!isAdmin) {
+    if (!canCreateKnowledge) {
         return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для создания карточек.
             </div>
         );
@@ -192,7 +192,7 @@ export default function CardCreatePage() {
 
     if (!section) {
         return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                 Секция не найдена.
             </div>
         );
@@ -201,49 +201,49 @@ export default function CardCreatePage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/sections" className="transition hover:text-slate-700">
+                <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
                     Справочник
                 </Link>
                 <span>/</span>
                 <Link
                     to={`/sections/${section.slug}`}
-                    className="transition hover:text-slate-700"
+                    className="transition hover:text-slate-700 dark:text-slate-200"
                 >
                     {section.title}
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500">Создание карточки</span>
+                <span className="text-slate-500 dark:text-slate-400">Создание карточки</span>
             </div>
 
             <section className="space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                     Создание карточки
                 </h1>
-                <p className="max-w-3xl text-base leading-7 text-slate-600">
+                <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
                     Новая карточка будет добавлена в секцию «{section.title}».
                 </p>
             </section>
 
             {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             )}
 
             {successMessage && (
-                <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700">
+                <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
                     {successMessage}
                 </div>
             )}
 
             <form
                 onSubmit={handleSubmit}
-                className="space-y-6 rounded-[32px] bg-white p-8 shadow-sm"
+                className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">
                     <label
                         htmlFor="title"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Название карточки
                     </label>
@@ -253,7 +253,7 @@ export default function CardCreatePage() {
                         type="text"
                         value={formData.title}
                         onChange={handleChange}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                         required
                     />
                 </div>
@@ -261,7 +261,7 @@ export default function CardCreatePage() {
                 <div className="space-y-2">
                     <label
                         htmlFor="summary"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Краткое описание
                     </label>
@@ -271,14 +271,14 @@ export default function CardCreatePage() {
                         value={formData.summary}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label
                         htmlFor="content"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Содержимое карточки
                     </label>
@@ -288,14 +288,14 @@ export default function CardCreatePage() {
                         value={formData.content}
                         onChange={handleChange}
                         rows={10}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label
                         htmlFor="main_image"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Главное изображение карточки
                     </label>
@@ -305,7 +305,7 @@ export default function CardCreatePage() {
                         type="file"
                         accept="image/*"
                         onChange={handleChange}
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
@@ -313,7 +313,7 @@ export default function CardCreatePage() {
                     <div className="space-y-2">
                         <label
                             htmlFor="attachments"
-                            className="block text-sm font-medium text-slate-700"
+                            className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                         >
                             Вложения карточки
                         </label>
@@ -323,10 +323,10 @@ export default function CardCreatePage() {
                             type="file"
                             multiple
                             onChange={handleAttachmentsChange}
-                            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
+                            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                         />
 
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             Можно прикреплять изображения, видео, аудио и документы.
                         </p>
                     </div>
@@ -336,15 +336,15 @@ export default function CardCreatePage() {
                             {attachments.map((item, index) => (
                                 <div
                                     key={`${item.file.name}-${index}`}
-                                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/80"
                                 >
                                     <div className="space-y-3">
-                                        <p className="text-sm font-medium text-slate-900">
+                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                             {item.file.name}
                                         </p>
 
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-slate-700">
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                                                 Подпись
                                             </label>
                                             <input
@@ -357,12 +357,12 @@ export default function CardCreatePage() {
                                                         event.target.value
                                                     )
                                                 }
-                                                className="w-full rounded-xl border border-slate-300 px-4 py-2 outline-none transition focus:border-slate-500"
+                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                             />
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-slate-700">
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                                                 Порядок
                                             </label>
                                             <input
@@ -375,14 +375,14 @@ export default function CardCreatePage() {
                                                         event.target.value
                                                     )
                                                 }
-                                                className="w-full rounded-xl border border-slate-300 px-4 py-2 outline-none transition focus:border-slate-500"
+                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                             />
                                         </div>
 
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveAttachment(index)}
-                                            className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                                            className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                                         >
                                             Удалить вложение
                                         </button>
@@ -393,28 +393,30 @@ export default function CardCreatePage() {
                     )}
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <input
-                        type="checkbox"
-                        name="is_published"
-                        checked={formData.is_published}
-                        onChange={handleChange}
-                    />
-                    <span className="text-sm text-slate-700">Опубликована</span>
-                </label>
+                {isAdmin && (
+                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            checked={formData.is_published}
+                            onChange={handleChange}
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
+                    </label>
+                )}
 
                 <div className="flex gap-3">
                     <button
                         type="submit"
                         disabled={isSaving}
-                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
+                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 disabled:opacity-70"
                     >
                         {isSaving ? "Создаём..." : "Создать карточку"}
                     </button>
 
                     <Link
                         to={`/sections/${section.slug}`}
-                        className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
                     >
                         Отмена
                     </Link>

@@ -63,7 +63,7 @@ export default function ProjectDetailPage() {
     if (isLoading) {
         return (
             <section>
-                <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                     Загрузка проекта...
                 </div>
             </section>
@@ -73,7 +73,7 @@ export default function ProjectDetailPage() {
     if (error && !project) {
         return (
             <section className="space-y-4">
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             </section>
@@ -83,7 +83,7 @@ export default function ProjectDetailPage() {
     if (!project) {
         return (
             <section className="space-y-4">
-                <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                     Проект не найден.
                 </div>
             </section>
@@ -104,19 +104,19 @@ export default function ProjectDetailPage() {
                 <section className="space-y-6">
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm text-slate-400">
-                            <Link to="/projects" className="transition hover:text-slate-700">
+                            <Link to="/projects" className="transition hover:text-slate-700 dark:text-slate-200">
                                 Проекты
                             </Link>
                             <span>/</span>
-                            <span className="truncate text-slate-500">{project.title}</span>
+                            <span className="truncate text-slate-500 dark:text-slate-400">{project.title}</span>
                         </div>
 
                         <div className="space-y-3">
-                            <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+                            <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                                 {project.title}
                             </h1>
 
-                            <p className="text-base leading-7 text-slate-600">
+                            <p className="text-base leading-7 text-slate-600 dark:text-slate-300">
                                 {project.short_description || "Краткое описание отсутствует."}
                             </p>
                         </div>
@@ -125,7 +125,7 @@ export default function ProjectDetailPage() {
                             <div className="flex flex-wrap gap-3">
                                 <Link
                                     to={`/projects/${project.slug}/edit`}
-                                    className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                    className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                                 >
                                     Редактировать проект
                                 </Link>
@@ -136,7 +136,7 @@ export default function ProjectDetailPage() {
                                         setDeleteConfirmation("");
                                         setIsDeleteModalOpen(true);
                                     }}
-                                    className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                                    className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                                 >
                                     Удалить проект
                                 </button>
@@ -145,12 +145,12 @@ export default function ProjectDetailPage() {
                     </div>
 
                     {error && (
-                        <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                        <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                             {error}
                         </div>
                     )}
 
-                    <article className="overflow-hidden rounded-[32px] bg-white shadow-sm">
+                    <article className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
@@ -158,13 +158,13 @@ export default function ProjectDetailPage() {
                                 className="h-[360px] w-full object-cover"
                             />
                         ) : (
-                            <div className="flex h-[360px] items-center justify-center bg-slate-200 text-slate-500">
+                            <div className="flex h-[360px] items-center justify-center bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                                 Изображение проекта отсутствует
                             </div>
                         )}
 
                         <div className="space-y-5 p-6">
-                            <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+                            <div className="flex flex-wrap gap-4 text-sm text-slate-400">
                 <span>
                   География:{" "}
                     {project.geojson?.properties?.label || "Не указана"}
@@ -177,7 +177,7 @@ export default function ProjectDetailPage() {
                 </span>
                             </div>
 
-                            <div className="space-y-4 text-sm leading-7 text-slate-700">
+                            <div className="space-y-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
                                 <p>
                                     {project.full_description || "Полное описание отсутствует."}
                                 </p>
@@ -187,13 +187,13 @@ export default function ProjectDetailPage() {
                 </section>
 
                 <aside className="space-y-6">
-                    <section className="overflow-hidden rounded-[32px] bg-white shadow-sm">
+                    <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                         <div className="flex items-center justify-between px-5 py-4">
-              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-900/80 dark:text-slate-400">
                 Карта
               </span>
 
-                            <span className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
+                            <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
                 Карта проекта
               </span>
                         </div>
@@ -203,12 +203,12 @@ export default function ProjectDetailPage() {
                         </div>
                     </section>
 
-                    <section className="rounded-[32px] bg-white p-6 shadow-sm">
-            <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+                    <section className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+            <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-900/80 dark:text-slate-400">
               Управление
             </span>
 
-                        <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+                        <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                             <p>
                                 По ТЗ проекты редактируются администратором. Пользовательский
                                 фронтенд здесь даёт быстрый просмотр и навигацию.
@@ -224,25 +224,25 @@ export default function ProjectDetailPage() {
 
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-                    <div className="w-full max-w-lg rounded-[32px] bg-white p-8 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-[32px] border border-slate-200 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
                         <div className="space-y-4">
-                            <h2 className="text-2xl font-bold text-slate-900">
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                                 Подтвердите удаление проекта
                             </h2>
 
-                            <p className="text-sm leading-6 text-slate-600">
+                            <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                                 Чтобы удалить проект, введите его название точно так же, как оно
                                 указано ниже:
                             </p>
 
-                            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">
+                            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
                                 {project.title}
                             </div>
 
                             <div className="space-y-2">
                                 <label
                                     htmlFor="delete-confirmation"
-                                    className="block text-sm font-medium text-slate-700"
+                                    className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Название проекта
                                 </label>
@@ -255,7 +255,7 @@ export default function ProjectDetailPage() {
                                         setDeleteConfirmation(event.target.value)
                                     }
                                     placeholder="Введите точное название проекта"
-                                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                 />
                             </div>
 
@@ -273,7 +273,7 @@ export default function ProjectDetailPage() {
                                     type="button"
                                     onClick={() => setIsDeleteModalOpen(false)}
                                     disabled={isDeleting}
-                                    className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
                                 >
                                     Отмена
                                 </button>

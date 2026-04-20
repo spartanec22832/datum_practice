@@ -47,10 +47,10 @@ export default function LoginPage() {
 
     return (
         <section className="mx-auto max-w-md">
-            <div className="rounded-3xl bg-white p-8 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                 <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold text-slate-900">Вход</h1>
-                    <p className="text-sm leading-6 text-slate-600">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">Вход</h1>
+                    <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                         Авторизуйся, чтобы получить доступ к защищённым возможностям системы.
                     </p>
                 </div>
@@ -59,7 +59,7 @@ export default function LoginPage() {
                     <div className="space-y-2">
                         <label
                             htmlFor="username"
-                            className="block text-sm font-medium text-slate-700"
+                            className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                         >
                             Логин
                         </label>
@@ -69,7 +69,7 @@ export default function LoginPage() {
                             type="text"
                             value={formData.username}
                             onChange={handleChange}
-                            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                             placeholder="Введите логин"
                             required
                         />
@@ -78,7 +78,7 @@ export default function LoginPage() {
                     <div className="space-y-2">
                         <label
                             htmlFor="password"
-                            className="block text-sm font-medium text-slate-700"
+                            className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                         >
                             Пароль
                         </label>
@@ -88,14 +88,14 @@ export default function LoginPage() {
                             type="password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                             placeholder="Введите пароль"
                             required
                         />
                     </div>
 
                     {error && (
-                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {error}
                         </div>
                     )}
@@ -103,7 +103,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+                        className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         {isSubmitting ? "Входим..." : "Войти"}
                     </button>

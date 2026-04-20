@@ -49,6 +49,10 @@ export function AuthProvider({ children }) {
             logout,
             isAuthenticated: Boolean(user),
             isAdmin: Boolean(user?.is_staff || user?.role === "admin"),
+            isUser: Boolean(user?.role === "user"),
+            canCreateKnowledge: Boolean(
+                user?.is_staff || user?.role === "admin" || user?.role === "user"
+            ),
         }),
         [user, isAuthLoading]
     );

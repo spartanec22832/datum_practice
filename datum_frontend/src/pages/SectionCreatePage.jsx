@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function SectionCreatePage() {
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
 
     const [sections, setSections] = useState([]);
     const [formData, setFormData] = useState({
@@ -67,7 +67,7 @@ export default function SectionCreatePage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: formData.is_published,
+                is_published: isAdmin ? formData.is_published : true,
             };
 
             if (formData.parent) {
@@ -91,15 +91,15 @@ export default function SectionCreatePage() {
 
     if (isAuthLoading || isLoadingSections) {
         return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                 Загрузка...
             </div>
         );
     }
 
-    if (!isAdmin) {
+    if (!canCreateKnowledge) {
         return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для создания секций.
             </div>
         );
@@ -108,42 +108,42 @@ export default function SectionCreatePage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/sections" className="transition hover:text-slate-700">
+                <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
                     Секции
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500">Создание</span>
+                <span className="text-slate-500 dark:text-slate-400">Создание</span>
             </div>
 
             <section className="space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                     Создание секции
                 </h1>
-                <p className="max-w-3xl text-base leading-7 text-slate-600">
-                    Здесь администратор может создать новую секцию справочника.
+                <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
+                    Здесь можно создать новую секцию справочника.
                 </p>
             </section>
 
             {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             )}
 
             {successMessage && (
-                <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700">
+                <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
                     {successMessage}
                 </div>
             )}
 
             <form
                 onSubmit={handleSubmit}
-                className="space-y-6 rounded-[32px] bg-white p-8 shadow-sm"
+                className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">
                     <label
                         htmlFor="title"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Название секции
                     </label>
@@ -153,7 +153,7 @@ export default function SectionCreatePage() {
                         type="text"
                         value={formData.title}
                         onChange={handleChange}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                         required
                     />
                 </div>
@@ -161,7 +161,7 @@ export default function SectionCreatePage() {
                 <div className="space-y-2">
                     <label
                         htmlFor="description"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Описание
                     </label>
@@ -171,14 +171,14 @@ export default function SectionCreatePage() {
                         value={formData.description}
                         onChange={handleChange}
                         rows={6}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label
                         htmlFor="parent"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Родительская секция
                     </label>
@@ -187,7 +187,7 @@ export default function SectionCreatePage() {
                         name="parent"
                         value={formData.parent}
                         onChange={handleChange}
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     >
                         <option value="">Без родительской секции</option>
                         {parentOptions.map((section) => (
@@ -198,28 +198,30 @@ export default function SectionCreatePage() {
                     </select>
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <input
-                        type="checkbox"
-                        name="is_published"
-                        checked={formData.is_published}
-                        onChange={handleChange}
-                    />
-                    <span className="text-sm text-slate-700">Опубликована</span>
-                </label>
+                {isAdmin && (
+                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            checked={formData.is_published}
+                            onChange={handleChange}
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
+                    </label>
+                )}
 
                 <div className="flex gap-3">
                     <button
                         type="submit"
                         disabled={isSaving}
-                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
+                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 disabled:opacity-70"
                     >
                         {isSaving ? "Создаём..." : "Создать секцию"}
                     </button>
 
                     <Link
                         to="/sections"
-                        className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
                     >
                         Отмена
                     </Link>
