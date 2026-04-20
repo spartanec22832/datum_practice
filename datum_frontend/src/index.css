@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @font-face {
   font-family: "Gilroy";
@@ -32,6 +33,10 @@
   font-display: swap;
 }
 
+:root {
+  color-scheme: light;
+}
+
 html,
 body,
 #root {
@@ -42,6 +47,19 @@ body {
   margin: 0;
   font-family: "Gilroy", Arial, sans-serif;
   background: #f1f5f9;
+  color: #0f172a;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 32%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.14), transparent 28%),
+    linear-gradient(180deg, #07101f 0%, #020617 100%);
+  color: #f8fafc;
 }
 
 button,
@@ -49,4 +67,20 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+main input[type="file"]::file-selector-button {
+  margin-right: 1rem;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+}
+
+html[data-theme="dark"] main input[type="file"]::file-selector-button {
+  border-color: rgba(148, 163, 184, 0.26);
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
 }

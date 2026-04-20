@@ -34,8 +34,8 @@ const highlights = [
 export default function HomePage() {
     const { isAuthenticated } = useAuth();
     return (
-        <div className="bg-slate-100">
-            <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+        <div className="bg-transparent">
+            <section className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute left-[-80px] top-[-80px] h-72 w-72 rounded-full bg-cyan-400 blur-3xl" />
                     <div className="absolute bottom-[-120px] right-[-40px] h-80 w-80 rounded-full bg-blue-500 blur-3xl" />
@@ -55,14 +55,14 @@ export default function HomePage() {
                 </span>
                             </h1>
 
-                            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
+                            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-200/90 sm:text-lg">
                                 DATUM Soft — аккредитованная ИТ-компания, специализирующаяся на
                                 разработке аналитических информационных систем для
                                 государственного сектора, естественных монополий,
                                 инфраструктурных предприятий и крупного бизнеса.
                             </p>
 
-                            <p className="mt-4 max-w-3xl text-base leading-8 text-slate-400 sm:text-lg">
+                            <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
                                 Компания развивает собственные цифровые продукты и решения,
                                 включая web-ГИС DATUM GIS, предназначенную для задач
                                 мониторинга, контроля и аналитики пространственно привязанных
@@ -97,7 +97,7 @@ export default function HomePage() {
                                     <div className="text-2xl font-bold text-cyan-300">
                                         {item.value}
                                     </div>
-                                    <div className="mt-2 text-sm leading-6 text-slate-300">
+                                    <div className="mt-2 text-sm leading-6 text-slate-200">
                                         {item.label}
                                     </div>
                                 </div>
@@ -110,15 +110,15 @@ export default function HomePage() {
             <section className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-10">
                 <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
                     <div>
-            <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">
+            <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-600 dark:text-cyan-300">
               О компании
             </span>
-                        <h2 className="mt-3 text-3xl font-bold text-slate-900 sm:text-4xl">
+                        <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-50 sm:text-4xl">
                             Технологические решения для цифрового развития
                         </h2>
                     </div>
 
-                    <div className="space-y-5 text-base leading-8 text-slate-700">
+                    <div className="space-y-5 text-base leading-8 text-slate-700 dark:text-slate-200">
                         <p>
                             С 2014 года DATUM Soft выросла из небольшой команды,
                             внедрявшей сторонние геоинформационные системы, в самостоятельную
@@ -136,15 +136,15 @@ export default function HomePage() {
             </section>
 
             <section className="mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-10">
-                <div className="rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-slate-200 sm:p-10">
+                <div className="rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900/90 dark:ring-slate-800 sm:p-10">
                     <div className="max-w-3xl">
-            <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">
+            <span className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-600 dark:text-cyan-300">
               Основные направления
             </span>
-                        <h2 className="mt-3 text-3xl font-bold text-slate-900 sm:text-4xl">
+                        <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-50 sm:text-4xl">
                             Чем занимается DATUM Soft
                         </h2>
-                        <p className="mt-4 text-base leading-8 text-slate-600">
+                        <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
                             Компания сочетает разработку собственных продуктов, внедрение
                             информационных систем и развитие решений под задачи заказчика. По
                             материалам сайта в фокусе — аналитические ИС, геоинформационные
@@ -156,13 +156,13 @@ export default function HomePage() {
                         {features.map((item) => (
                             <article
                                 key={item.title}
-                                className="rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-md"
+                                className="rounded-3xl bg-slate-50 p-6 ring-1 ring-slate-200 transition hover:-translate-y-1 hover:shadow-md dark:bg-slate-900/80 dark:ring-slate-800"
                             >
                                 <div className="mb-4 h-10 w-10 rounded-2xl bg-cyan-100" />
-                                <h3 className="text-xl font-semibold text-slate-900">
+                                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-50">
                                     {item.title}
                                 </h3>
-                                <p className="mt-3 text-sm leading-7 text-slate-600">
+                                <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
                                     {item.description}
                                 </p>
                             </article>
@@ -173,31 +173,31 @@ export default function HomePage() {
 
             <section className="mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-10">
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="rounded-3xl bg-slate-900 p-8 text-white">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-white">
                         <h3 className="text-2xl font-bold">Собственная платформа</h3>
-                        <p className="mt-4 text-sm leading-7 text-slate-300">
+                        <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
                             DATUM GIS позиционируется как многофункциональная
                             геоинформационная система для мониторинга, контроля и аналитики
                             большого массива данных в пространственной привязке.
                         </p>
                     </div>
 
-                    <div className="rounded-3xl bg-white p-8 ring-1 ring-slate-200">
-                        <h3 className="text-2xl font-bold text-slate-900">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm ring-1 ring-slate-200 dark:border-slate-800 dark:bg-slate-900/90 dark:ring-slate-800">
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                             Проекты для разных отраслей
                         </h3>
-                        <p className="mt-4 text-sm leading-7 text-slate-600">
+                        <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
                             На сайте компании представлены кейсы и внедрения для органов
                             власти, региональных систем, водоканалов и других инфраструктурных
                             организаций.
                         </p>
                     </div>
 
-                    <div className="rounded-3xl bg-cyan-50 p-8 ring-1 ring-cyan-100">
-                        <h3 className="text-2xl font-bold text-slate-900">
+                    <div className="rounded-3xl bg-cyan-50 p-8 ring-1 ring-cyan-100 dark:bg-cyan-950/30 dark:ring-cyan-900/40">
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                             Единая цифровая среда
                         </h3>
-                        <p className="mt-4 text-sm leading-7 text-slate-700">
+                        <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
                             Эта платформа помогает централизованно представить информацию о
                             проектах компании и обеспечить удобную навигацию по корпоративным
                             материалам для сотрудников.
@@ -226,7 +226,7 @@ export default function HomePage() {
                         <div className="flex flex-col gap-4 sm:flex-row lg:flex-col">
                             <Link
                                 to="/projects"
-                                className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+                                className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                             >
                                 Перейти к проектам
                             </Link>

@@ -11,7 +11,7 @@ function SectionTile({ section, isAdmin }) {
     return (
         <Link
             to={`/sections/${section.slug}`}
-            className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+            className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
                 <div className="space-y-2">
@@ -22,22 +22,22 @@ function SectionTile({ section, isAdmin }) {
 
                         {isAdmin &&
                             (section.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                                     <span className="h-2 w-2 rounded-full bg-red-500" />
                                     Не опубликовано
                                 </span>
                             ))}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-slate-900">{section.title}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{section.title}</h3>
                 </div>
 
-                <p className="text-sm leading-7 text-slate-600">
+                <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {section.description || "Описание секции отсутствует."}
                 </p>
             </div>
@@ -49,7 +49,7 @@ function CardTile({ card, isAdmin }) {
     return (
         <Link
             to={`/cards/${card.slug}`}
-            className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+            className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
                 <div className="space-y-2">
@@ -60,22 +60,22 @@ function CardTile({ card, isAdmin }) {
 
                         {isAdmin &&
                             (card.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                                     <span className="h-2 w-2 rounded-full bg-red-500" />
                                     Не опубликовано
                                 </span>
                             ))}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-slate-900">{card.title}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{card.title}</h3>
                 </div>
 
-                <p className="text-sm leading-7 text-slate-600">
+                <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {card.summary || "Краткое описание карточки отсутствует."}
                 </p>
             </div>
@@ -152,7 +152,7 @@ export default function SectionPage() {
 
     if (isLoading) {
         return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                 Загрузка раздела...
             </div>
         );
@@ -160,7 +160,7 @@ export default function SectionPage() {
 
     if (error && !section) {
         return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 {error}
             </div>
         );
@@ -168,7 +168,7 @@ export default function SectionPage() {
 
     if (!section) {
         return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                 Раздел не найден.
             </div>
         );
@@ -178,18 +178,18 @@ export default function SectionPage() {
         <div className="space-y-8">
             <section className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Link to="/sections" className="transition hover:text-slate-700">
+                    <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
                         Справочник
                     </Link>
                     <span>/</span>
-                    <span className="text-slate-500">{section.title}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{section.title}</span>
                 </div>
 
                 <div className="space-y-3">
-                    <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+                    <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                         {section.title}
                     </h1>
-                    <p className="max-w-3xl text-base leading-7 text-slate-600">
+                    <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
                         {section.description || "Описание раздела отсутствует."}
                     </p>
                 </div>
@@ -198,7 +198,7 @@ export default function SectionPage() {
                     {isAdmin && (
                         <Link
                             to={`/sections/${section.slug}/edit`}
-                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                         >
                             Редактировать секцию
                         </Link>
@@ -207,7 +207,7 @@ export default function SectionPage() {
                     {canCreateKnowledge && (
                         <Link
                             to={`/sections/${section.slug}/cards/create`}
-                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                         >
                             + Добавить карточку
                         </Link>
@@ -220,7 +220,7 @@ export default function SectionPage() {
                                 setDeleteConfirmation("");
                                 setIsDeleteModalOpen(true);
                             }}
-                            className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                            className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                         >
                             Удалить секцию
                         </button>
@@ -229,21 +229,21 @@ export default function SectionPage() {
             </section>
 
             {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             )}
 
             <section className="space-y-5">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Вложенные секции</h2>
-                    <p className="text-sm text-slate-500">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Вложенные секции</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                         Подразделы внутри текущей секции.
                     </p>
                 </div>
 
                 {content.sections.length === 0 ? (
-                    <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                         В этой секции пока нет вложенных секций.
                     </div>
                 ) : (
@@ -257,14 +257,14 @@ export default function SectionPage() {
 
             <section className="space-y-5">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Карточки</h2>
-                    <p className="text-sm text-slate-500">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Карточки</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                         Карточки, относящиеся к текущей секции.
                     </p>
                 </div>
 
                 {content.cards.length === 0 ? (
-                    <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                         В этой секции пока нет карточек.
                     </div>
                 ) : (
@@ -278,25 +278,25 @@ export default function SectionPage() {
 
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-                    <div className="w-full max-w-lg rounded-[32px] bg-white p-8 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-[32px] border border-slate-200 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
                         <div className="space-y-4">
-                            <h2 className="text-2xl font-bold text-slate-900">
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                                 Подтвердите удаление секции
                             </h2>
 
-                            <p className="text-sm leading-6 text-slate-600">
+                            <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                                 Чтобы удалить секцию, введите её название точно так же, как оно
                                 указано ниже:
                             </p>
 
-                            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900">
+                            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
                                 {section.title}
                             </div>
 
                             <div className="space-y-2">
                                 <label
                                     htmlFor="delete-confirmation"
-                                    className="block text-sm font-medium text-slate-700"
+                                    className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                                 >
                                     Название секции
                                 </label>
@@ -307,7 +307,7 @@ export default function SectionPage() {
                                     value={deleteConfirmation}
                                     onChange={(event) => setDeleteConfirmation(event.target.value)}
                                     placeholder="Введите точное название секции"
-                                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                 />
                             </div>
 
@@ -325,7 +325,7 @@ export default function SectionPage() {
                                     type="button"
                                     onClick={() => setIsDeleteModalOpen(false)}
                                     disabled={isDeleting}
-                                    className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
                                 >
                                     Отмена
                                 </button>

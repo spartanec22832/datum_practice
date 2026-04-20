@@ -9,10 +9,10 @@ function ProjectCard({ project, isAdmin, isActive, onHover, onLeave, onFocusProj
         <article
             onMouseEnter={() => onHover(project)}
             onMouseLeave={onLeave}
-            className={`rounded-3xl border bg-white p-6 shadow-sm transition ${
+            className={`rounded-3xl border bg-white p-6 shadow-sm transition dark:bg-slate-900/90 ${
                 isActive
-                    ? "border-blue-500 shadow-md ring-2 ring-blue-100"
-                    : "border-slate-200 hover:shadow-md"
+                    ? "border-cyan-400 shadow-md ring-2 ring-cyan-500/20"
+                    : "border-slate-200 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:hover:border-slate-700"
             }`}
         >
             <div className="space-y-4">
@@ -24,24 +24,24 @@ function ProjectCard({ project, isAdmin, isActive, onHover, onLeave, onFocusProj
 
                         {isAdmin &&
                             (project.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
                   Опубликовано
                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                   <span className="h-2 w-2 rounded-full bg-red-500" />
                   Не опубликовано
                 </span>
                             ))}
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                         {project.title}
                     </h2>
                 </div>
 
-                <p className="text-sm leading-7 text-slate-600">
+                <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {project.short_description || "Краткое описание пока не заполнено."}
                 </p>
 
@@ -49,14 +49,14 @@ function ProjectCard({ project, isAdmin, isActive, onHover, onLeave, onFocusProj
                     <button
                         type="button"
                         onClick={() => onFocusProject(project)}
-                        className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
                         Показать на карте
                     </button>
 
                     <Link
                         to={`/projects/${project.slug}`}
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                     >
                         Открыть
                     </Link>
@@ -152,24 +152,24 @@ export default function ProjectsPage() {
     return (
         <div className="space-y-8">
             <section className="space-y-3">
-        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+        <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
           Проекты
         </span>
 
-                <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 md:text-5xl">
                     Карта и список проектных карточек
                 </h1>
 
-                <p className="max-w-3xl text-base leading-7 text-slate-600">
+                <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
                     Наведи на карточку проекта или начни вводить текст в поиск, чтобы
                     быстро найти нужный проект и увидеть его геометрию на карте.
                 </p>
             </section>
 
-            <section className="rounded-3xl bg-white p-5 shadow-sm">
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                 <label
                     htmlFor="projects-search"
-                    className="mb-2 block text-sm font-medium text-slate-600"
+                    className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300"
                 >
                     Поиск по проектам
                 </label>
@@ -180,18 +180,18 @@ export default function ProjectsPage() {
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Введите название, slug или описание проекта"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white dark:border-slate-800 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400 dark:focus:bg-slate-950"
                 />
             </section>
 
             {isLoading && (
-                <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                     Загрузка проектов...
                 </div>
             )}
 
             {!isLoading && error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             )}
@@ -207,10 +207,10 @@ export default function ProjectsPage() {
                     <section className="space-y-5">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-2xl font-bold text-slate-900">
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
                                     Карточки проектов
                                 </h2>
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
                                     Найдено: {filteredProjects.length}
                                 </p>
                             </div>
@@ -223,7 +223,7 @@ export default function ProjectsPage() {
                                 {isAdmin && (
                                     <Link
                                         to="/projects/create"
-                                        className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                        className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                                     >
                                         + Добавить проект
                                     </Link>
@@ -232,7 +232,7 @@ export default function ProjectsPage() {
                         </div>
 
                         {filteredProjects.length === 0 ? (
-                            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+                            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                                 По вашему запросу ничего не найдено.
                             </div>
                         ) : (

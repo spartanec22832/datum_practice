@@ -179,7 +179,7 @@ export default function ProjectEditPage() {
 
     if (isAuthLoading || isLoading) {
         return (
-            <div className="rounded-3xl bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                 Загрузка...
             </div>
         );
@@ -187,7 +187,7 @@ export default function ProjectEditPage() {
 
     if (!isAdmin) {
         return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для редактирования проектов.
             </div>
         );
@@ -202,49 +202,49 @@ export default function ProjectEditPage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/projects" className="transition hover:text-slate-700">
+                <Link to="/projects" className="transition hover:text-slate-700 dark:text-slate-200">
                     Проекты
                 </Link>
                 <span>/</span>
                 <Link
                     to={`/projects/${slug}`}
-                    className="transition hover:text-slate-700"
+                    className="transition hover:text-slate-700 dark:text-slate-200"
                 >
                     {project?.title || slug}
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500">Редактирование</span>
+                <span className="text-slate-500 dark:text-slate-400">Редактирование</span>
             </div>
 
             <section className="space-y-3">
-                <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                     Редактирование проекта
                 </h1>
-                <p className="max-w-3xl text-base leading-7 text-slate-600">
+                <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
                     Здесь администратор может изменить содержимое проекта.
                 </p>
             </section>
 
             {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             )}
 
             {successMessage && (
-                <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700">
+                <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
                     {successMessage}
                 </div>
             )}
 
             <form
                 onSubmit={handleSubmit}
-                className="space-y-6 rounded-[32px] bg-white p-8 shadow-sm"
+                className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">
                     <label
                         htmlFor="title"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Название проекта
                     </label>
@@ -254,7 +254,7 @@ export default function ProjectEditPage() {
                         type="text"
                         value={formData.title}
                         onChange={handleChange}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                         required
                     />
                 </div>
@@ -262,7 +262,7 @@ export default function ProjectEditPage() {
                 <div className="space-y-2">
                     <label
                         htmlFor="short_description"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Краткое описание
                     </label>
@@ -272,14 +272,14 @@ export default function ProjectEditPage() {
                         value={formData.short_description}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label
                         htmlFor="full_description"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Полное описание
                     </label>
@@ -289,14 +289,14 @@ export default function ProjectEditPage() {
                         value={formData.full_description}
                         onChange={handleChange}
                         rows={10}
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label
                         htmlFor="geojson"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         GeoJSON
                     </label>
@@ -307,14 +307,14 @@ export default function ProjectEditPage() {
                         onChange={handleChange}
                         rows={8}
                         placeholder='Например: {"type":"Feature","geometry":{"type":"Point","coordinates":[39.7015,47.2357]},"properties":{"label":"Ростов-на-Дону"}}'
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label
                         htmlFor="geojson_file"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Загрузить GeoJSON-файл
                     </label>
@@ -325,10 +325,10 @@ export default function ProjectEditPage() {
                         type="file"
                         accept=".json,.geojson,application/json"
                         onChange={handleGeoJsonFileChange}
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
 
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                         Можно загрузить файл .json или .geojson — его содержимое подставится
                         в поле GeoJSON выше.
                     </p>
@@ -337,7 +337,7 @@ export default function ProjectEditPage() {
                 <div className="space-y-2">
                     <label
                         htmlFor="main_image"
-                        className="block text-sm font-medium text-slate-700"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-200"
                     >
                         Фото проекта
                     </label>
@@ -348,11 +348,11 @@ export default function ProjectEditPage() {
                         type="file"
                         accept="image/*"
                         onChange={handleChange}
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-slate-500"
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
 
                     {project?.main_image && (
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             Текущее изображение уже загружено. Можно выбрать новый файл для
                             замены.
                         </p>
@@ -360,7 +360,7 @@ export default function ProjectEditPage() {
                 </div>
 
                 {currentImageUrl && (
-                    <div className="overflow-hidden rounded-2xl border border-slate-200">
+                                <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
                         <img
                             src={currentImageUrl}
                             alt={project.title}
@@ -369,28 +369,28 @@ export default function ProjectEditPage() {
                     </div>
                 )}
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
                     <input
                         type="checkbox"
                         name="is_published"
                         checked={formData.is_published}
                         onChange={handleChange}
                     />
-                    <span className="text-sm text-slate-700">Опубликован</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-200">Опубликован</span>
                 </label>
 
                 <div className="flex gap-3">
                     <button
                         type="submit"
                         disabled={isSaving}
-                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
+                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 disabled:opacity-70"
                     >
                         {isSaving ? "Сохраняем..." : "Сохранить"}
                     </button>
 
                     <Link
                         to={`/projects/${slug}`}
-                        className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
                     >
                         Отмена
                     </Link>
