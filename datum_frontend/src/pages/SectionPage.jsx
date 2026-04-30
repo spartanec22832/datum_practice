@@ -54,6 +54,11 @@ function SectionTile({ section, isAdmin }) {
                 <p className="text-xs text-slate-400">
                     Автор: {authorName}
                 </p>
+
+                <div className="flex flex-wrap gap-4 text-xs text-slate-400">
+                    <span>Подсекций: {section.children_count ?? 0}</span>
+                    <span>Карточек: {section.cards_count ?? 0}</span>
+                </div>
             </div>
         </Link>
     );
