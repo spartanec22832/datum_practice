@@ -36,12 +36,12 @@ export async function updateCard(id, payload, isFormData = false) {
         }
         : {};
 
-    const response = await api.patch(`/cards/${id}/`, payload, config);
+    const response = await api.patch(`/cards/id/${id}/`, payload, config);
     return response.data;
 }
 
 export async function deleteCard(id) {
-    const response = await api.delete(`/cards/${id}/`);
+    const response = await api.delete(`/cards/id/${id}/`);
     return response.data;
 }
 

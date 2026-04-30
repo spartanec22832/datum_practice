@@ -8,6 +8,14 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 function SectionTile({ section, isAdmin }) {
+    const authorName =
+        typeof section.author === "object"
+            ? section.author?.username ||
+            section.author?.email ||
+            `${section.author?.first_name || ""} ${section.author?.last_name || ""}`.trim() ||
+            "Не указан"
+            : section.author_username || section.author_email || "Не указан";
+
     return (
         <Link
             to={`/sections/${section.slug}`}
@@ -22,15 +30,13 @@ function SectionTile({ section, isAdmin }) {
 
                         {isAdmin &&
                             (section.is_published ? (
-                                <span
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100"/>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span
-                                    className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                                    <span className="h-2 w-2 rounded-full bg-red-500"/>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                                    <span className="h-2 w-2 rounded-full bg-red-500" />
                                     Не опубликовано
                                 </span>
                             ))}
@@ -44,14 +50,9 @@ function SectionTile({ section, isAdmin }) {
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {section.description || "Описание секции отсутствует."}
                 </p>
+
                 <p className="text-xs text-slate-400">
-                    Автор:{" "}
-                    {typeof card.author === "object"
-                        ? card.author?.username ||
-                        card.author?.email ||
-                        `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
-                        "Не указан"
-                        : card.author_username || card.author_email || "Не указан"}
+                    Автор: {authorName}
                 </p>
             </div>
         </Link>

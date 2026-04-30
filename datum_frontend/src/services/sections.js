@@ -21,11 +21,11 @@ export async function createSection(payload) {
 }
 
 export async function updateSection(id, payload) {
-    const response = await api.patch(`/sections/${id}/`, payload);
+    const response = await api.patch(`/sections/id/${id}/`, payload);
     return response.data;
 }
 
 export async function deleteSection(id) {
-    const response = await api.delete(`/sections/${id}/`);
+    const response = await api.delete(`/sections/id/${id}/`);
     return response.data;
 }
