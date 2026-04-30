@@ -3,6 +3,21 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { deleteCard, getCardBySlug } from "../services/cards";
 import { useAuth } from "../context/AuthContext";
 
+
+function normalizeSectionPath(path) {
+    return (path || "").replace(/^\/+|\/+$/g, "");
+}
+
+function buildSectionBreadcrumbs(sectionPath) {
+    const parts = normalizeSectionPath(sectionPath).split("/").filter(Boolean);
+
+    return parts.map((slug, index) => ({
+        slug,
+        path: `/sections/${parts.slice(0, index + 1).join("/")}`,
+        isLast: index === parts.length - 1,
+    }));
+}
+
 function getFileUrl(filePath) {
     if (!filePath) {
         return null;
@@ -102,8 +117,9 @@ function MediaItemCard({ item }) {
     );
 }
 
-export default function CardPage() {
-    const { slug } = useParams();
+export default function CardPage({ cardSlug = null, sectionPath = null }) {
+    const params = useParams();
+    const slug = cardSlug || params.slug;
     const navigate = useNavigate();
     const { canManageKnowledgeItem } = useAuth();
 
@@ -150,6 +166,25 @@ export default function CardPage() {
 
     const sectionSlug = card?.section_slug || card?.section?.slug || null;
     const sectionTitle = card?.section_title || card?.section?.title || "Раздел";
+
+    const backToSectionPath = sectionPath
+        ? `/sections/${sectionPath}`
+        : sectionSlug
+            ? `/sections/${sectionSlug}`
+            : "/sections";
+
+    const breadcrumbs = sectionPath
+        ? buildSectionBreadcrumbs(sectionPath)
+        : sectionSlug
+            ? [
+                {
+                    slug: sectionTitle,
+                    path: `/sections/${sectionSlug}`,
+                    isLast: true,
+                },
+            ]
+            : [];
+
     const canManageCard = canManageKnowledgeItem(card);
 
     const mediaItems = Array.isArray(card?.media_items)
@@ -172,12 +207,7 @@ export default function CardPage() {
             setError("");
 
             await deleteCard(card.id);
-
-            if (sectionSlug) {
-                navigate(`/sections/${sectionSlug}`);
-            } else {
-                navigate("/sections");
-            }
+            navigate(backToSectionPath);
         } catch (err) {
             console.error(err);
             setError("Не удалось удалить карточку.");
@@ -214,7 +244,7 @@ export default function CardPage() {
     return (
         <div className="space-y-8">
             <section className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-slate-400">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                     <Link
                         to="/sections"
                         className="transition hover:text-slate-700 dark:text-slate-200"
@@ -222,28 +252,29 @@ export default function CardPage() {
                         Справочник
                     </Link>
 
-                    {sectionSlug && (
-                        <>
+                    {breadcrumbs.map((item) => (
+                        <div key={item.path} className="flex items-center gap-2">
                             <span>/</span>
+
                             <Link
-                                to={`/sections/${sectionSlug}`}
+                                to={item.path}
                                 className="transition hover:text-slate-700 dark:text-slate-200"
                             >
-                                {sectionTitle}
+                                {item.slug}
                             </Link>
-                        </>
-                    )}
+                        </div>
+                    ))}
 
                     <span>/</span>
                     <span className="text-slate-500 dark:text-slate-400">
-                        {card.title}
-                    </span>
+        {card.title}
+    </span>
                 </div>
 
                 {sectionSlug && (
                     <div>
                         <Link
-                            to={`/sections/${sectionSlug}`}
+                            to={backToSectionPath}
                             className="inline-flex text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                         >
                             ← Назад в раздел
@@ -284,12 +315,14 @@ export default function CardPage() {
             </section>
 
             {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                <div
+                    className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                     {error}
                 </div>
             )}
 
-            <article className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+            <article
+                className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                 {imageUrl ? (
                     <img
                         src={imageUrl}
@@ -338,8 +371,7 @@ export default function CardPage() {
                 </div>
 
                 {mediaItems.length === 0 ? (
-                    <div
-                        className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                         У этой карточки пока нет вложений.
                     </div>
                 ) : (

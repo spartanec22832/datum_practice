@@ -27,18 +27,24 @@ export default function App() {
                         <Route path="projects" element={<ProjectsPage />} />
                         <Route path="projects/:slug" element={<ProjectDetailPage />} />
                         <Route path="login" element={<LoginPage />} />
-                        <Route path="*" element={<NotFoundPage />} />
                         <Route path="projects/:slug/edit" element={<ProjectEditPage />} />
+
                         <Route element={<ProtectedRoute />}>
                             <Route path="sections" element={<SectionsPage />} />
-                            <Route path="sections/:slug" element={<SectionPage />} />
                             <Route path="sections/create" element={<SectionCreatePage />} />
-                            <Route path="cards/:slug" element={<CardPage />} />
+
                             <Route path="sections/:slug/edit" element={<SectionEditPage />} />
                             <Route path="sections/:slug/cards/create" element={<CardCreatePage />} />
+
+                            <Route path="sections/*" element={<SectionPage />} />
+
+                            <Route path="cards/:slug" element={<CardPage />} />
                             <Route path="cards/:slug/edit" element={<CardEditPage />} />
+
                             <Route path="projects/create" element={<ProjectCreatePage />} />
                         </Route>
+
+                        <Route path="*" element={<NotFoundPage />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

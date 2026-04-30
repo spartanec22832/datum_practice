@@ -6,8 +6,23 @@ import {
     getSectionContent,
 } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
+import CardPage from "./CardPage";
 
-function SectionTile({ section, isAdmin }) {
+function normalizeSectionPath(path) {
+    return (path || "").replace(/^\/+|\/+$/g, "");
+}
+
+function buildSectionBreadcrumbs(sectionPath) {
+    const parts = normalizeSectionPath(sectionPath).split("/").filter(Boolean);
+
+    return parts.map((slug, index) => ({
+        slug,
+        path: `/sections/${parts.slice(0, index + 1).join("/")}`,
+        isLast: index === parts.length - 1,
+    }));
+}
+
+function SectionTile({ section, isAdmin, currentSectionPath }) {
     const authorName =
         typeof section.author === "object"
             ? section.author?.username ||
@@ -16,9 +31,15 @@ function SectionTile({ section, isAdmin }) {
             "Не указан"
             : section.author_username || section.author_email || "Не указан";
 
+    const normalizedCurrentPath = normalizeSectionPath(currentSectionPath);
+
+    const targetPath = normalizedCurrentPath
+        ? `/sections/${normalizedCurrentPath}/${section.slug}`
+        : `/sections/${section.slug}`;
+
     return (
         <Link
-            to={`/sections/${section.slug}`}
+            to={targetPath}
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
@@ -64,10 +85,16 @@ function SectionTile({ section, isAdmin }) {
     );
 }
 
-function CardTile({card, isAdmin}) {
+function CardTile({ card, isAdmin, currentSectionPath }) {
+    const normalizedCurrentPath = normalizeSectionPath(currentSectionPath);
+
+    const targetPath = normalizedCurrentPath
+        ? `/sections/${normalizedCurrentPath}/cards/${card.slug}`
+        : `/cards/${card.slug}`;
+
     return (
         <Link
-            to={`/cards/${card.slug}`}
+            to={targetPath}
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
@@ -79,15 +106,13 @@ function CardTile({card, isAdmin}) {
 
                         {isAdmin &&
                             (card.is_published ? (
-                                <span
-                                    className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100"/>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span
-                                    className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                                    <span className="h-2 w-2 rounded-full bg-red-500"/>
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                                    <span className="h-2 w-2 rounded-full bg-red-500" />
                                     Не опубликовано
                                 </span>
                             ))}
@@ -101,6 +126,7 @@ function CardTile({card, isAdmin}) {
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {card.summary || "Краткое описание карточки отсутствует."}
                 </p>
+
                 <p className="text-xs text-slate-400">
                     Автор:{" "}
                     {typeof card.author === "object"
@@ -116,12 +142,33 @@ function CardTile({card, isAdmin}) {
 }
 
 export default function SectionPage() {
-    const {slug} = useParams();
+    const params = useParams();
     const navigate = useNavigate();
-    const {isAdmin, canCreateKnowledge, canManageKnowledgeItem} = useAuth();
+    const { isAdmin, canCreateKnowledge, canManageKnowledgeItem } = useAuth();
+
+    const sectionPath = normalizeSectionPath(params["*"] || params.slug || "");
+    const sectionPathParts = sectionPath.split("/").filter(Boolean);
+
+    const cardIndex = sectionPathParts.indexOf("cards");
+    const isNestedCardPage =
+        cardIndex !== -1 && Boolean(sectionPathParts[cardIndex + 1]);
+
+    const nestedCardSlug = isNestedCardPage
+        ? sectionPathParts[cardIndex + 1]
+        : null;
+
+    const nestedCardSectionPath = isNestedCardPage
+        ? sectionPathParts.slice(0, cardIndex).join("/")
+        : sectionPath;
+
+    const slug = isNestedCardPage
+        ? null
+        : sectionPathParts[sectionPathParts.length - 1] || "";
+
+    const breadcrumbs = buildSectionBreadcrumbs(sectionPath);
 
     const [section, setSection] = useState(null);
-    const [content, setContent] = useState({sections: [], cards: []});
+    const [content, setContent] = useState({ sections: [], cards: [] });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -130,6 +177,10 @@ export default function SectionPage() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
+        if (isNestedCardPage) {
+            return;
+        }
+
         async function loadSectionPage() {
             try {
                 setIsLoading(true);
@@ -145,7 +196,9 @@ export default function SectionPage() {
                     sections: Array.isArray(contentData.child_sections)
                         ? contentData.child_sections
                         : [],
-                    cards: Array.isArray(contentData.cards) ? contentData.cards : [],
+                    cards: Array.isArray(contentData.cards)
+                        ? contentData.cards
+                        : [],
                 });
             } catch (err) {
                 console.error(err);
@@ -156,7 +209,7 @@ export default function SectionPage() {
         }
 
         loadSectionPage();
-    }, [slug]);
+    }, [slug, isNestedCardPage]);
 
     const canManageSection = canManageKnowledgeItem(section);
 
@@ -182,6 +235,15 @@ export default function SectionPage() {
         } finally {
             setIsDeleting(false);
         }
+    }
+
+    if (isNestedCardPage && nestedCardSlug) {
+        return (
+            <CardPage
+                cardSlug={nestedCardSlug}
+                sectionPath={nestedCardSectionPath}
+            />
+        );
     }
 
     if (isLoading) {
@@ -211,17 +273,32 @@ export default function SectionPage() {
     return (
         <div className="space-y-8">
             <section className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-slate-400">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                     <Link
                         to="/sections"
                         className="transition hover:text-slate-700 dark:text-slate-200"
                     >
                         Справочник
                     </Link>
-                    <span>/</span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                        {section.title}
-                    </span>
+
+                    {breadcrumbs.map((item) => (
+                        <div key={item.path} className="flex items-center gap-2">
+                            <span>/</span>
+
+                            {item.isLast ? (
+                                <span className="text-slate-500 dark:text-slate-400">
+                    {section.title}
+                </span>
+                            ) : (
+                                <Link
+                                    to={item.path}
+                                    className="transition hover:text-slate-700 dark:text-slate-200"
+                                >
+                                    {item.slug}
+                                </Link>
+                            )}
+                        </div>
+                    ))}
                 </div>
 
                 <div className="space-y-3">
@@ -300,6 +377,7 @@ export default function SectionPage() {
                                 key={item.id}
                                 section={item}
                                 isAdmin={isAdmin}
+                                currentSectionPath={sectionPath}
                             />
                         ))}
                     </div>
@@ -323,7 +401,12 @@ export default function SectionPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {content.cards.map((item) => (
-                            <CardTile key={item.id} card={item} isAdmin={isAdmin} />
+                            <CardTile
+                                key={item.id}
+                                card={item}
+                                isAdmin={isAdmin}
+                                currentSectionPath={sectionPath}
+                            />
                         ))}
                     </div>
                 )}
