@@ -19,12 +19,12 @@ export async function updateProject(id, payload, isFormData = false) {
         }
         : {};
 
-    const response = await api.patch(`/projects/${id}/`, payload, config);
+    const response = await api.patch(`/projects/id/${id}/`, payload, config);
     return response.data;
 }
 
 export async function deleteProject(id) {
-    const response = await api.delete(`/projects/${id}/`);
+    const response = await api.delete(`/projects/id/${id}/`);
     return response.data;
 }
 

@@ -51,8 +51,18 @@ class Project(models.Model):
 
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
-        if not self.slug:
-            self.slug = generate_unique_slug(Project, self.title, self.pk, fallback="project")
+        title_changed = False
+        if self.pk:
+            old_instance = Project.objects.filter(pk=self.pk).only("title").first()
+            if old_instance and normalize_title(old_instance.title) != self.title:
+                title_changed = True
+        if not self.slug or title_changed:
+            self.slug = generate_unique_slug(
+                Project,
+                self.title,
+                self.pk,
+                fallback="project",
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
