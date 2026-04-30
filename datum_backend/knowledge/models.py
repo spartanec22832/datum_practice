@@ -74,9 +74,19 @@ class Section(models.Model):
 
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
+        title_changed = False
+        if self.pk:
+            old_instance = Section.objects.filter(pk=self.pk).only("title").first()
+            if old_instance and normalize_title(old_instance.title) != self.title:
+                title_changed = True
         self.full_clean()
-        if not self.slug:
-            self.slug = generate_unique_slug(Section, self.title, self.pk, fallback="section")
+        if not self.slug or title_changed:
+            self.slug = generate_unique_slug(
+                Section,
+                self.title,
+                self.pk,
+                fallback="section",
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -115,21 +125,27 @@ class Card(models.Model):
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
         old_image = None
+        title_changed = False
         if self.pk:
             try:
                 old_instance = Card.objects.get(pk=self.pk)
                 old_image = old_instance.main_image
+
+                if normalize_title(old_instance.title) != self.title:
+                    title_changed = True
+
             except Card.DoesNotExist:
                 old_image = None
-
-        if not self.slug:
-            self.slug = generate_unique_slug(Card, self.title, self.pk, fallback="card")
-
+        if not self.slug or title_changed:
+            self.slug = generate_unique_slug(
+                Card,
+                self.title,
+                self.pk,
+                fallback="card",
+            )
         super().save(*args, **kwargs)
-
         old_name = old_image.name if old_image else ""
         new_name = self.main_image.name if self.main_image else ""
-
         if old_name and old_name != new_name:
             if old_image.storage.exists(old_name):
                 old_image.storage.delete(old_name)
