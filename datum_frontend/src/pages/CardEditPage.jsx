@@ -71,7 +71,7 @@ function getFileName(filePath) {
 export default function CardEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { isAdmin, isAuthLoading, canManageKnowledgeItem } = useAuth();
 
     const [card, setCard] = useState(null);
     const [formData, setFormData] = useState({
@@ -161,7 +161,9 @@ export default function CardEditPage() {
     }
 
     function handleRemoveNewAttachment(index) {
-        setNewAttachments((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+        setNewAttachments((prev) =>
+            prev.filter((_, itemIndex) => itemIndex !== index)
+        );
     }
 
     async function handleDeleteExistingAttachment(mediaId) {
@@ -206,8 +208,11 @@ export default function CardEditPage() {
                     title: formData.title,
                     summary: formData.summary,
                     content: formData.content,
-                    is_published: formData.is_published,
                 };
+
+                if (isAdmin) {
+                    payload.is_published = formData.is_published;
+                }
 
                 updatedCard = await updateCard(card.id, payload, false);
             } else {
@@ -215,7 +220,10 @@ export default function CardEditPage() {
                 payload.append("title", formData.title);
                 payload.append("summary", formData.summary);
                 payload.append("content", formData.content);
-                payload.append("is_published", formData.is_published);
+
+                if (isAdmin) {
+                    payload.append("is_published", formData.is_published);
+                }
 
                 if (formData.main_image) {
                     payload.append("main_image", formData.main_image);
@@ -284,7 +292,7 @@ export default function CardEditPage() {
         );
     }
 
-    if (!isAdmin) {
+    if (!canManageKnowledgeItem(card)) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для редактирования карточек.
@@ -303,7 +311,10 @@ export default function CardEditPage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                <Link
+                    to="/sections"
+                    className="transition hover:text-slate-700 dark:text-slate-200"
+                >
                     Справочник
                 </Link>
 
@@ -327,7 +338,9 @@ export default function CardEditPage() {
                     {card.title}
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500 dark:text-slate-400">Редактирование</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                    Редактирование
+                </span>
             </div>
 
             <section className="space-y-3">
@@ -335,7 +348,7 @@ export default function CardEditPage() {
                     Редактирование карточки
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    Здесь администратор может изменить содержимое карточки и управлять её вложениями.
+                    Здесь можно изменить содержимое карточки и управлять её вложениями.
                 </p>
             </section>
 
@@ -427,13 +440,14 @@ export default function CardEditPage() {
 
                         {card?.main_image && (
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Текущее изображение уже загружено. Можно выбрать новый файл для замены.
+                                Текущее изображение уже загружено. Можно выбрать новый
+                                файл для замены.
                             </p>
                         )}
                     </div>
 
                     {currentImageUrl && (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
                             <img
                                 src={currentImageUrl}
                                 alt={card.title}
@@ -442,20 +456,26 @@ export default function CardEditPage() {
                         </div>
                     )}
 
-                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                        <input
-                            type="checkbox"
-                            name="is_published"
-                            checked={formData.is_published}
-                            onChange={handleChange}
-                        />
-                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
-                    </label>
+                    {isAdmin && (
+                        <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                            <input
+                                type="checkbox"
+                                name="is_published"
+                                checked={formData.is_published}
+                                onChange={handleChange}
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-200">
+                                Опубликована
+                            </span>
+                        </label>
+                    )}
                 </section>
 
                 <section className="space-y-5">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Текущие вложения</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            Текущие вложения
+                        </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Здесь можно удалить уже прикреплённые файлы.
                         </p>
@@ -485,7 +505,9 @@ export default function CardEditPage() {
                                                 {item.media_type}
                                             </p>
                                             {item.caption && (
-                                                <p className="text-sm text-slate-600 dark:text-slate-300">{item.caption}</p>
+                                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                                    {item.caption}
+                                                </p>
                                             )}
                                             {fileUrl && (
                                                 <a
@@ -501,7 +523,9 @@ export default function CardEditPage() {
 
                                         <button
                                             type="button"
-                                            onClick={() => handleDeleteExistingAttachment(item.id)}
+                                            onClick={() =>
+                                                handleDeleteExistingAttachment(item.id)
+                                            }
                                             className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                                         >
                                             Удалить вложение
@@ -515,7 +539,9 @@ export default function CardEditPage() {
 
                 <section className="space-y-5">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Новые вложения</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            Новые вложения
+                        </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Здесь можно добавить новые файлы к карточке.
                         </p>

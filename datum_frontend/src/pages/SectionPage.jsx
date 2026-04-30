@@ -22,30 +22,43 @@ function SectionTile({ section, isAdmin }) {
 
                         {isAdmin &&
                             (section.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
+                                <span
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100"/>
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                <span
+                                    className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                                    <span className="h-2 w-2 rounded-full bg-red-500"/>
                                     Не опубликовано
                                 </span>
                             ))}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{section.title}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                        {section.title}
+                    </h3>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {section.description || "Описание секции отсутствует."}
+                </p>
+                <p className="text-xs text-slate-400">
+                    Автор:{" "}
+                    {typeof card.author === "object"
+                        ? card.author?.username ||
+                        card.author?.email ||
+                        `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
+                        "Не указан"
+                        : card.author_username || card.author_email || "Не указан"}
                 </p>
             </div>
         </Link>
     );
 }
 
-function CardTile({ card, isAdmin }) {
+function CardTile({card, isAdmin}) {
     return (
         <Link
             to={`/cards/${card.slug}`}
@@ -60,23 +73,36 @@ function CardTile({ card, isAdmin }) {
 
                         {isAdmin &&
                             (card.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
+                                <span
+                                    className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100"/>
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                <span
+                                    className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                                    <span className="h-2 w-2 rounded-full bg-red-500"/>
                                     Не опубликовано
                                 </span>
                             ))}
                     </div>
 
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{card.title}</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                        {card.title}
+                    </h3>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {card.summary || "Краткое описание карточки отсутствует."}
+                </p>
+                <p className="text-xs text-slate-400">
+                    Автор:{" "}
+                    {typeof card.author === "object"
+                        ? card.author?.username ||
+                        card.author?.email ||
+                        `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
+                        "Не указан"
+                        : card.author_username || card.author_email || "Не указан"}
                 </p>
             </div>
         </Link>
@@ -84,12 +110,12 @@ function CardTile({ card, isAdmin }) {
 }
 
 export default function SectionPage() {
-    const { slug } = useParams();
+    const {slug} = useParams();
     const navigate = useNavigate();
-    const { isAdmin, canCreateKnowledge } = useAuth();
+    const {isAdmin, canCreateKnowledge, canManageKnowledgeItem} = useAuth();
 
     const [section, setSection] = useState(null);
-    const [content, setContent] = useState({ sections: [], cards: [] });
+    const [content, setContent] = useState({sections: [], cards: []});
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -125,6 +151,8 @@ export default function SectionPage() {
 
         loadSectionPage();
     }, [slug]);
+
+    const canManageSection = canManageKnowledgeItem(section);
 
     async function handleDeleteSection() {
         if (!section) {
@@ -178,24 +206,35 @@ export default function SectionPage() {
         <div className="space-y-8">
             <section className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                    <Link
+                        to="/sections"
+                        className="transition hover:text-slate-700 dark:text-slate-200"
+                    >
                         Справочник
                     </Link>
                     <span>/</span>
-                    <span className="text-slate-500 dark:text-slate-400">{section.title}</span>
+                    <span className="text-slate-500 dark:text-slate-400">
+                        {section.title}
+                    </span>
                 </div>
 
                 <div className="space-y-3">
                     <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                         {section.title}
                     </h1>
-                    <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                        {section.description || "Описание раздела отсутствует."}
+                    <p className="text-sm text-slate-400">
+                        Автор:{" "}
+                        {typeof section.author === "object"
+                            ? section.author?.username ||
+                            section.author?.email ||
+                            `${section.author?.first_name || ""} ${section.author?.last_name || ""}`.trim() ||
+                            "Не указан"
+                            : section.author_username || section.author_email || "Не указан"}
                     </p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                    {isAdmin && (
+                    {canManageSection && (
                         <Link
                             to={`/sections/${section.slug}/edit`}
                             className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
@@ -213,7 +252,7 @@ export default function SectionPage() {
                         </Link>
                     )}
 
-                    {isAdmin && (
+                    {canManageSection && (
                         <button
                             type="button"
                             onClick={() => {
@@ -236,7 +275,9 @@ export default function SectionPage() {
 
             <section className="space-y-5">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Вложенные секции</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                        Вложенные секции
+                    </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         Подразделы внутри текущей секции.
                     </p>
@@ -249,7 +290,11 @@ export default function SectionPage() {
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {content.sections.map((item) => (
-                            <SectionTile key={item.id} section={item} isAdmin={isAdmin} />
+                            <SectionTile
+                                key={item.id}
+                                section={item}
+                                isAdmin={isAdmin}
+                            />
                         ))}
                     </div>
                 )}
@@ -257,7 +302,9 @@ export default function SectionPage() {
 
             <section className="space-y-5">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Карточки</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                        Карточки
+                    </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         Карточки, относящиеся к текущей секции.
                     </p>
@@ -285,8 +332,8 @@ export default function SectionPage() {
                             </h2>
 
                             <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Чтобы удалить секцию, введите её название точно так же, как оно
-                                указано ниже:
+                                Чтобы удалить секцию, введите её название точно так же,
+                                как оно указано ниже:
                             </p>
 
                             <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
@@ -305,7 +352,9 @@ export default function SectionPage() {
                                     id="delete-confirmation"
                                     type="text"
                                     value={deleteConfirmation}
-                                    onChange={(event) => setDeleteConfirmation(event.target.value)}
+                                    onChange={(event) =>
+                                        setDeleteConfirmation(event.target.value)
+                                    }
                                     placeholder="Введите точное название секции"
                                     className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                 />
@@ -315,7 +364,9 @@ export default function SectionPage() {
                                 <button
                                     type="button"
                                     onClick={handleDeleteSection}
-                                    disabled={isDeleting || deleteConfirmation !== section.title}
+                                    disabled={
+                                        isDeleting || deleteConfirmation !== section.title
+                                    }
                                     className="rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {isDeleting ? "Удаление..." : "Удалить навсегда"}

@@ -93,7 +93,9 @@ function MediaItemCard({ item }) {
                 </p>
 
                 {caption && (
-                    <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{caption}</p>
+                    <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                        {caption}
+                    </p>
                 )}
             </div>
         </article>
@@ -103,7 +105,7 @@ function MediaItemCard({ item }) {
 export default function CardPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin } = useAuth();
+    const { canManageKnowledgeItem } = useAuth();
 
     const [card, setCard] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -148,6 +150,7 @@ export default function CardPage() {
 
     const sectionSlug = card?.section_slug || card?.section?.slug || null;
     const sectionTitle = card?.section_title || card?.section?.title || "Раздел";
+    const canManageCard = canManageKnowledgeItem(card);
 
     const mediaItems = Array.isArray(card?.media_items)
         ? [...card.media_items].sort(
@@ -212,7 +215,10 @@ export default function CardPage() {
         <div className="space-y-8">
             <section className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                    <Link
+                        to="/sections"
+                        className="transition hover:text-slate-700 dark:text-slate-200"
+                    >
                         Справочник
                     </Link>
 
@@ -229,7 +235,9 @@ export default function CardPage() {
                     )}
 
                     <span>/</span>
-                    <span className="text-slate-500 dark:text-slate-400">{card.title}</span>
+                    <span className="text-slate-500 dark:text-slate-400">
+                        {card.title}
+                    </span>
                 </div>
 
                 {sectionSlug && (
@@ -252,7 +260,7 @@ export default function CardPage() {
                     </p>
                 </div>
 
-                {isAdmin && (
+                {canManageCard && (
                     <div className="flex flex-wrap gap-3">
                         <Link
                             to={`/cards/${card.slug}/edit`}
@@ -296,12 +304,21 @@ export default function CardPage() {
 
                 <div className="space-y-5 p-6">
                     <div className="flex flex-wrap gap-4 text-sm text-slate-400">
-            <span>
-              Обновлено{" "}
-                {card.updated_at
-                    ? new Date(card.updated_at).toLocaleDateString("ru-RU")
-                    : "—"}
-            </span>
+                        <span>
+                            Автор:{" "}
+                            {typeof card.author === "object"
+                                ? card.author?.username ||
+                                card.author?.email ||
+                                `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
+                                "Не указан"
+                                : card.author_username || card.author_email || "Не указан"}
+                        </span>
+                        <span>
+                            Обновлено{" "}
+                            {card.updated_at
+                                ? new Date(card.updated_at).toLocaleDateString("ru-RU")
+                                : "—"}
+                        </span>
                     </div>
 
                     <div className="space-y-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
@@ -321,7 +338,8 @@ export default function CardPage() {
                 </div>
 
                 {mediaItems.length === 0 ? (
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
+                    <div
+                        className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
                         У этой карточки пока нет вложений.
                     </div>
                 ) : (
@@ -342,8 +360,8 @@ export default function CardPage() {
                             </h2>
 
                             <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Чтобы удалить карточку, введите её название точно так же, как оно
-                                указано ниже:
+                                Чтобы удалить карточку, введите её название точно так же,
+                                как оно указано ниже:
                             </p>
 
                             <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
@@ -362,7 +380,9 @@ export default function CardPage() {
                                     id="delete-confirmation"
                                     type="text"
                                     value={deleteConfirmation}
-                                    onChange={(event) => setDeleteConfirmation(event.target.value)}
+                                    onChange={(event) =>
+                                        setDeleteConfirmation(event.target.value)
+                                    }
                                     placeholder="Введите точное название карточки"
                                     className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                 />

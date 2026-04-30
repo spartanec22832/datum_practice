@@ -4,6 +4,18 @@ import { getSections } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
 
 function SectionTile({ section, isAdmin }) {
+    const authorName =
+        typeof section.author === "object"
+            ? section.author?.username ||
+            section.author?.email ||
+            `${section.author?.first_name || ""} ${section.author?.last_name || ""}`.trim() ||
+            "Не указан"
+            : section.author_username ||
+            section.author_email ||
+            section.author_first_name ||
+            section.author_last_name ||
+            (section.author ? `ID ${section.author}` : "Не указан");
+
     return (
         <Link
             to={`/sections/${section.slug}`}
@@ -30,11 +42,17 @@ function SectionTile({ section, isAdmin }) {
                             ))}
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{section.title}</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                        {section.title}
+                    </h2>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {section.description || "Описание секции отсутствует."}
+                </p>
+
+                <p className="text-xs text-slate-400">
+                    Автор: {authorName}
                 </p>
 
                 <div className="flex flex-wrap gap-4 text-xs text-slate-400">

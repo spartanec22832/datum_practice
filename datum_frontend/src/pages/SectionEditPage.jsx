@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 export default function SectionEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { isAdmin, isAuthLoading, canManageKnowledgeItem } = useAuth();
 
     const [section, setSection] = useState(null);
     const [sections, setSections] = useState([]);
@@ -87,9 +87,12 @@ export default function SectionEditPage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: formData.is_published,
                 parent: formData.parent ? Number(formData.parent) : null,
             };
+
+            if (isAdmin) {
+                payload.is_published = formData.is_published;
+            }
 
             const updated = await updateSection(section.id, payload);
 
@@ -114,7 +117,7 @@ export default function SectionEditPage() {
         );
     }
 
-    if (!isAdmin) {
+    if (!canManageKnowledgeItem(section)) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для редактирования секции.
@@ -133,7 +136,10 @@ export default function SectionEditPage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                <Link
+                    to="/sections"
+                    className="transition hover:text-slate-700 dark:text-slate-200"
+                >
                     Секции
                 </Link>
                 <span>/</span>
@@ -144,7 +150,9 @@ export default function SectionEditPage() {
                     {section.title}
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500 dark:text-slate-400">Редактирование</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                    Редактирование
+                </span>
             </div>
 
             <section className="space-y-3">
@@ -230,15 +238,19 @@ export default function SectionEditPage() {
                     </select>
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                    <input
-                        type="checkbox"
-                        name="is_published"
-                        checked={formData.is_published}
-                        onChange={handleChange}
-                    />
-                    <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
-                </label>
+                {isAdmin && (
+                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            checked={formData.is_published}
+                            onChange={handleChange}
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                            Опубликована
+                        </span>
+                    </label>
+                )}
 
                 <div className="flex gap-3">
                     <button
