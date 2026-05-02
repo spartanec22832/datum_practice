@@ -29,9 +29,6 @@ function ProjectCard({ project, isAdmin, isActive, onSelectProject }) {
             <div className="flex h-full flex-col space-y-4">
                 <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                            Проект
-                        </p>
 
                         {isAdmin &&
                             (project.is_published ? (
@@ -164,8 +161,7 @@ export default function ProjectsPage() {
                 </h1>
 
                 <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    Нажми на карточку проекта или начни вводить текст в поиск, чтобы быстро
-                    найти нужный проект и увидеть его геометрию на карте.
+                    Нажмите на карточку проекта или воспользуйтесь поиском, чтобы увидеть его геометрию на карте.
                 </p>
             </section>
 

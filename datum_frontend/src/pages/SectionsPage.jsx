@@ -24,20 +24,20 @@ function SectionTile({ section, isAdmin }) {
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                            Секция
-                        </p>
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span className="inline-flex h-8 items-center rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                            Автор: {authorName}
+                        </span>
 
                         {isAdmin &&
                             (section.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
+                                <span className="inline-flex h-8 items-center gap-2 rounded-full bg-green-50 px-3 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                                <span className="inline-flex h-8 items-center gap-2 rounded-full bg-red-50 px-3 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                                     <span className="h-2 w-2 rounded-full bg-red-500" />
                                     Не опубликовано
                                 </span>
@@ -51,10 +51,6 @@ function SectionTile({ section, isAdmin }) {
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {section.description || "Описание секции отсутствует."}
-                </p>
-
-                <p className="text-xs text-slate-400">
-                    Автор: {authorName}
                 </p>
 
                 <div className="flex flex-wrap gap-4 text-xs text-slate-400">
@@ -94,7 +90,7 @@ export default function SectionsPage() {
                 setError(
                     getApiErrorMessages(
                         err,
-                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b\u044b."
+                        "Не удалось загрузить разделы."
                     )
                 );
             } finally {
@@ -141,7 +137,7 @@ export default function SectionsPage() {
                 </h1>
 
                 <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    Здесь собраны секции базы знаний. Открой нужную секцию, чтобы увидеть
+                    Здесь собраны секции базы знаний. Найдите нужную секцию или воспользуйтесь поиском, чтобы увидеть
                     вложенные разделы и карточки.
                 </p>
             </section>
@@ -167,8 +163,12 @@ export default function SectionsPage() {
             <section className="space-y-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Секции</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Всего: {rootSections.length}</p>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            Секции
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Всего: {rootSections.length}
+                        </p>
                     </div>
 
                     {canCreateKnowledge && (
@@ -201,7 +201,7 @@ export default function SectionsPage() {
                     </div>
                 )}
 
-                {!isLoading && !error && filteredSections.length >= 0 && (
+                {!isLoading && !error && filteredSections.length > 0 && (
                     <>
                         <div className="text-sm text-slate-500 dark:text-slate-400">
                             Найдено: {filteredSections.length}

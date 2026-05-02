@@ -24,15 +24,39 @@ function buildSectionBreadcrumbs(sectionPath) {
     }));
 }
 
-function SectionTile({ section, isAdmin, currentSectionPath }) {
-    const authorName =
-        typeof section.author === "object"
-            ? section.author?.username ||
-            section.author?.email ||
-            `${section.author?.first_name || ""} ${section.author?.last_name || ""}`.trim() ||
-            "Не указан"
-            : section.author_username || section.author_email || "Не указан";
+function getAuthorName(item) {
+    return typeof item.author === "object"
+        ? item.author?.username ||
+        item.author?.email ||
+        `${item.author?.first_name || ""} ${item.author?.last_name || ""}`.trim() ||
+        "Не указан"
+        : item.author_username || item.author_email || "Не указан";
+}
 
+function PublishBadge({ isPublished }) {
+    return isPublished ? (
+        <span className="inline-flex h-8 items-center gap-2 rounded-full bg-green-50 px-3 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Опубликовано
+        </span>
+    ) : (
+        <span className="inline-flex h-8 items-center gap-2 rounded-full bg-red-50 px-3 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            Не опубликовано
+        </span>
+    );
+}
+
+function AuthorBadge({ authorName }) {
+    return (
+        <span className="inline-flex h-8 items-center rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+            Автор: {authorName}
+        </span>
+    );
+}
+
+function SectionTile({ section, isAdmin, currentSectionPath }) {
+    const authorName = getAuthorName(section);
     const normalizedCurrentPath = normalizeSectionPath(currentSectionPath);
 
     const targetPath = normalizedCurrentPath
@@ -45,24 +69,10 @@ function SectionTile({ section, isAdmin, currentSectionPath }) {
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                            Секция
-                        </p>
-
-                        {isAdmin &&
-                            (section.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
-                                    Опубликовано
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                                    <span className="h-2 w-2 rounded-full bg-red-500" />
-                                    Не опубликовано
-                                </span>
-                            ))}
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <AuthorBadge authorName={authorName} />
+                        {isAdmin && <PublishBadge isPublished={section.is_published} />}
                     </div>
 
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
@@ -72,10 +82,6 @@ function SectionTile({ section, isAdmin, currentSectionPath }) {
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {section.description || "Описание секции отсутствует."}
-                </p>
-
-                <p className="text-xs text-slate-400">
-                    Автор: {authorName}
                 </p>
 
                 <div className="flex flex-wrap gap-4 text-xs text-slate-400">
@@ -88,6 +94,7 @@ function SectionTile({ section, isAdmin, currentSectionPath }) {
 }
 
 function CardTile({ card, isAdmin, currentSectionPath }) {
+    const authorName = getAuthorName(card);
     const normalizedCurrentPath = normalizeSectionPath(currentSectionPath);
 
     const targetPath = normalizedCurrentPath
@@ -100,24 +107,10 @@ function CardTile({ card, isAdmin, currentSectionPath }) {
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                            Карточка
-                        </p>
-
-                        {isAdmin &&
-                            (card.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
-                                    Опубликовано
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                                    <span className="h-2 w-2 rounded-full bg-red-500" />
-                                    Не опубликовано
-                                </span>
-                            ))}
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <AuthorBadge authorName={authorName} />
+                        {isAdmin && <PublishBadge isPublished={card.is_published} />}
                     </div>
 
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
@@ -127,16 +120,6 @@ function CardTile({ card, isAdmin, currentSectionPath }) {
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
                     {card.summary || "Краткое описание карточки отсутствует."}
-                </p>
-
-                <p className="text-xs text-slate-400">
-                    Автор:{" "}
-                    {typeof card.author === "object"
-                        ? card.author?.username ||
-                        card.author?.email ||
-                        `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
-                        "Не указан"
-                        : card.author_username || card.author_email || "Не указан"}
                 </p>
             </div>
         </Link>
@@ -207,7 +190,7 @@ export default function SectionPage() {
                 setError(
                     getApiErrorMessages(
                         err,
-                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b."
+                        "Не удалось загрузить раздел."
                     )
                 );
             } finally {
@@ -240,7 +223,7 @@ export default function SectionPage() {
             setError(
                 getApiErrorMessages(
                     err,
-                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b."
+                    "Не удалось удалить раздел."
                 )
             );
             setIsDeleteModalOpen(false);
@@ -295,8 +278,8 @@ export default function SectionPage() {
 
                             {item.isLast ? (
                                 <span className="text-slate-500 dark:text-slate-400">
-                    {section.title}
-                </span>
+                                    {section.title}
+                                </span>
                             ) : (
                                 <Link
                                     to={item.path}
@@ -314,13 +297,7 @@ export default function SectionPage() {
                         {section.title}
                     </h1>
                     <p className="text-sm text-slate-400">
-                        Автор:{" "}
-                        {typeof section.author === "object"
-                            ? section.author?.username ||
-                            section.author?.email ||
-                            `${section.author?.first_name || ""} ${section.author?.last_name || ""}`.trim() ||
-                            "Не указан"
-                            : section.author_username || section.author_email || "Не указан"}
+                        Автор: {getAuthorName(section)}
                     </p>
                 </div>
 
