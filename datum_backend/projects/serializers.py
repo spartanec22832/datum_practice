@@ -37,10 +37,12 @@ class ProjectSerializer(serializers.ModelSerializer):
         if value in (None, {}):
             return value
         if not isinstance(value, dict):
-            raise serializers.ValidationError("GeoJSON must be an object.")
+            raise serializers.ValidationError(
+                "GeoJSON \u0434\u043e\u043b\u0436\u0435\u043d \u0431\u044b\u0442\u044c JSON-\u043e\u0431\u044a\u0435\u043a\u0442\u043e\u043c."
+            )
         geojson_type = value.get("type")
         if geojson_type not in ALLOWED_GEOJSON_TYPES:
             raise serializers.ValidationError(
-                "GeoJSON type must be one of Feature, FeatureCollection, Point, Polygon, or MultiPolygon."
+                "\u0422\u0438\u043f GeoJSON \u0434\u043e\u043b\u0436\u0435\u043d \u0431\u044b\u0442\u044c \u043e\u0434\u043d\u0438\u043c \u0438\u0437: Feature, FeatureCollection, Point, Polygon \u0438\u043b\u0438 MultiPolygon."
             )
         return value

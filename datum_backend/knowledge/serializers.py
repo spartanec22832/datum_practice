@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
 
 from .models import Card, CardMedia, Section
 
@@ -108,9 +108,11 @@ class CardWriteSerializer(serializers.ModelSerializer):
         )
 
         if is_published and section and not section.is_published:
-            raise serializers.ValidationError({
-                "is_published": "Нельзя опубликовать карточку в неопубликованной секции."
-            })
+            raise serializers.ValidationError(
+                {
+                    "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0440\u0430\u0437\u0434\u0435\u043b\u0435."
+                }
+            )
 
         return attrs
 
@@ -160,7 +162,9 @@ class SectionSerializer(serializers.ModelSerializer):
             return value
 
         if "is_system" in getattr(self, "initial_data", {}):
-            raise serializers.ValidationError("Only admin can manage system sections.")
+            raise serializers.ValidationError(
+                "\u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440 \u043c\u043e\u0436\u0435\u0442 \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u0442\u044c \u0441\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u043c\u0438 \u0440\u0430\u0437\u0434\u0435\u043b\u0430\u043c\u0438."
+            )
 
         return value
 
@@ -178,9 +182,11 @@ class SectionSerializer(serializers.ModelSerializer):
         )
 
         if is_published and parent and not parent.is_published:
-            raise serializers.ValidationError({
-                "is_published": "Нельзя опубликовать подсекцию внутри неопубликованной родительской секции."
-            })
+            raise serializers.ValidationError(
+                {
+                    "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b \u0432\u043d\u0443\u0442\u0440\u0438 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u0433\u043e \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0433\u043e \u0440\u0430\u0437\u0434\u0435\u043b\u0430."
+                }
+            )
 
         return attrs
 
@@ -231,9 +237,11 @@ class CardSerializer(serializers.ModelSerializer):
         )
 
         if is_published and section and not section.is_published:
-            raise serializers.ValidationError({
-                "is_published": "Нельзя опубликовать карточку в неопубликованной секции."
-            })
+            raise serializers.ValidationError(
+                {
+                    "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0440\u0430\u0437\u0434\u0435\u043b\u0435."
+                }
+            )
 
         return attrs
 

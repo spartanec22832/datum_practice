@@ -72,11 +72,13 @@ class Section(models.Model):
 
     def clean(self):
         if self.parent_id and self.parent_id == self.pk:
-            raise ValidationError({"parent": "Section cannot be its own parent."})
+            raise ValidationError({
+                "parent": "\u0420\u0430\u0437\u0434\u0435\u043b \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0431\u044b\u0442\u044c \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u0435\u043c \u0441\u0430\u043c \u0434\u043b\u044f \u0441\u0435\u0431\u044f."
+            })
 
         if self.is_published and self.parent_id and self.parent and not self.parent.is_published:
             raise ValidationError({
-                "is_published": "Cannot publish a section inside an unpublished parent section."
+                "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b \u0432\u043d\u0443\u0442\u0440\u0438 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u0433\u043e \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0433\u043e \u0440\u0430\u0437\u0434\u0435\u043b\u0430."
             })
 
     def get_descendant_ids(self):
@@ -168,7 +170,7 @@ class Card(models.Model):
     def clean(self):
         if self.is_published and self.section_id and self.section and not self.section.is_published:
             raise ValidationError({
-                "is_published": "Cannot publish a card inside an unpublished section."
+                "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0440\u0430\u0437\u0434\u0435\u043b\u0435."
             })
 
     def save(self, *args, **kwargs):
@@ -279,7 +281,9 @@ class CardMedia(models.Model):
             )
 
             if ext not in allowed_exts:
-                raise ValidationError({"file": f"Unsupported file type: {ext}"})
+                raise ValidationError({
+                    "file": f"\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: {ext}"
+                })
 
     def save(self, *args, **kwargs):
         old_file = None

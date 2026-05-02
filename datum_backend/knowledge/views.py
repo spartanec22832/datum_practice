@@ -134,10 +134,14 @@ class CardMediaListCreateView(generics.ListCreateAPIView):
         user = self.request.user
 
         if not user.is_authenticated:
-            raise PermissionDenied("Authentication required.")
+            raise PermissionDenied(
+                "\u0422\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044f \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f."
+            )
 
         if not (user.is_staff or card.author_id == user.id):
-            raise PermissionDenied("You cannot add media to this card.")
+            raise PermissionDenied(
+                "\u0423 \u0432\u0430\u0441 \u043d\u0435\u0442 \u043f\u0440\u0430\u0432 \u0434\u043b\u044f \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0432\u043b\u043e\u0436\u0435\u043d\u0438\u0439 \u043a \u044d\u0442\u043e\u0439 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0435."
+            )
 
         return card
 
