@@ -13,12 +13,20 @@ class CardMediaSerializer(serializers.ModelSerializer):
             "id",
             "card",
             "file",
+            "original_filename",
             "media_type",
             "caption",
             "sort_order",
             "created_at",
         )
-        read_only_fields = ("id", "card", "media_type", "created_at")
+        read_only_fields = (
+            "id",
+            "card",
+            "original_filename",
+            "media_type",
+            "created_at",
+        )
+
 
 class CardReadSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username", read_only=True)
@@ -86,6 +94,26 @@ class CardWriteSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        section = attrs.get(
+            "section",
+            self.instance.section if self.instance else None,
+        )
+
+        is_published = attrs.get(
+            "is_published",
+            self.instance.is_published if self.instance else False,
+        )
+
+        if is_published and section and not section.is_published:
+            raise serializers.ValidationError({
+                "is_published": "Нельзя опубликовать карточку в неопубликованной секции."
+            })
+
+        return attrs
+
 
 class SectionSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username", read_only=True)
@@ -110,7 +138,14 @@ class SectionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "slug", "author", "author_username", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "slug",
+            "author",
+            "author_username",
+            "created_at",
+            "updated_at",
+        )
 
     def get_children_count(self, obj) -> int:
         return obj.children.count()
@@ -120,11 +155,34 @@ class SectionSerializer(serializers.ModelSerializer):
 
     def validate_is_system(self, value):
         request = self.context.get("request")
+
         if request and request.user.is_authenticated and request.user.is_staff:
             return value
+
         if "is_system" in getattr(self, "initial_data", {}):
             raise serializers.ValidationError("Only admin can manage system sections.")
+
         return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        parent = attrs.get(
+            "parent",
+            self.instance.parent if self.instance else None,
+        )
+
+        is_published = attrs.get(
+            "is_published",
+            self.instance.is_published if self.instance else False,
+        )
+
+        if is_published and parent and not parent.is_published:
+            raise serializers.ValidationError({
+                "is_published": "Нельзя опубликовать подсекцию внутри неопубликованной родительской секции."
+            })
+
+        return attrs
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -150,7 +208,34 @@ class CardSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "author", "author_username", "section_slug", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "author",
+            "author_username",
+            "section_slug",
+            "created_at",
+            "updated_at",
+        )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        section = attrs.get(
+            "section",
+            self.instance.section if self.instance else None,
+        )
+
+        is_published = attrs.get(
+            "is_published",
+            self.instance.is_published if self.instance else False,
+        )
+
+        if is_published and section and not section.is_published:
+            raise serializers.ValidationError({
+                "is_published": "Нельзя опубликовать карточку в неопубликованной секции."
+            })
+
+        return attrs
 
 
 class SectionContentSerializer(SectionSerializer):
@@ -163,19 +248,25 @@ class SectionContentSerializer(SectionSerializer):
     def _filter_sections(self, queryset):
         request = self.context["request"]
         user = request.user
+
         if user.is_authenticated and user.is_staff:
             return queryset
+
         if user.is_authenticated:
             return (queryset.filter(is_published=True) | queryset.filter(author=user)).distinct()
+
         return queryset.filter(is_published=True)
 
     def _filter_cards(self, queryset):
         request = self.context["request"]
         user = request.user
+
         if user.is_authenticated and user.is_staff:
             return queryset
+
         if user.is_authenticated:
             return (queryset.filter(is_published=True) | queryset.filter(author=user)).distinct()
+
         return queryset.filter(is_published=True)
 
     @extend_schema_field(SectionSerializer(many=True))

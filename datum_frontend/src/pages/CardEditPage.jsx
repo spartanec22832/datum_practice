@@ -135,12 +135,9 @@ export default function CardEditPage() {
             return;
         }
 
-        const startOrder = newAttachments.length;
-
-        const items = files.map((file, index) => ({
+        const items = files.map((file) => ({
             file,
             caption: "",
-            sort_order: startOrder + index,
         }));
 
         setNewAttachments((prev) => [...prev, ...items]);
@@ -153,7 +150,7 @@ export default function CardEditPage() {
                 itemIndex === index
                     ? {
                         ...item,
-                        [field]: field === "sort_order" ? Number(value) || 0 : value,
+                        [field]: value,
                     }
                     : item
             )
@@ -232,11 +229,15 @@ export default function CardEditPage() {
                 updatedCard = await updateCard(card.id, payload, true);
             }
 
-            for (const item of newAttachments) {
+            const existingAttachmentsCount = Array.isArray(card.media_items)
+                ? card.media_items.length
+                : 0;
+
+            for (const [index, item] of newAttachments.entries()) {
                 const mediaPayload = new FormData();
                 mediaPayload.append("file", item.file);
                 mediaPayload.append("caption", item.caption);
-                mediaPayload.append("sort_order", item.sort_order);
+                mediaPayload.append("sort_order", existingAttachmentsCount + index);
                 mediaPayload.append("media_type", getMediaType(item.file.name));
 
                 await createCardMedia(updatedCard.id, mediaPayload);
@@ -490,7 +491,7 @@ export default function CardEditPage() {
                             {existingMediaItems.map((item) => {
                                 const rawFilePath = item.file || item.file_path;
                                 const fileUrl = getFileUrl(rawFilePath);
-                                const fileName = getFileName(rawFilePath);
+                                const fileName = item.original_filename || getFileName(rawFilePath);
 
                                 return (
                                     <div
@@ -591,24 +592,6 @@ export default function CardEditPage() {
                                                     handleNewAttachmentFieldChange(
                                                         index,
                                                         "caption",
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                                Порядок
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={item.sort_order}
-                                                onChange={(event) =>
-                                                    handleNewAttachmentFieldChange(
-                                                        index,
-                                                        "sort_order",
                                                         event.target.value
                                                     )
                                                 }

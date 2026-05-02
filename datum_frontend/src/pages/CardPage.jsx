@@ -48,7 +48,7 @@ function getFileName(filePath) {
 function MediaItemCard({ item }) {
     const rawFilePath = item.file || item.file_path;
     const fileUrl = getFileUrl(rawFilePath);
-    const fileName = getFileName(rawFilePath);
+    const fileName = item.original_filename || getFileName(rawFilePath);
     const mediaType = item.media_type;
     const caption = item.caption || "";
 

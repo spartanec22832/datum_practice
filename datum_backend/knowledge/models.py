@@ -1,13 +1,15 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from slugify import slugify
 import os
 import uuid
 import re
 
+
 def normalize_title(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "").strip())
+
 
 def build_transliterated_slug(value: str, fallback: str) -> str:
     return slugify(value or "", lowercase=True, separator="-", max_length=200) or fallback
@@ -72,14 +74,50 @@ class Section(models.Model):
         if self.parent_id and self.parent_id == self.pk:
             raise ValidationError({"parent": "Section cannot be its own parent."})
 
+        if self.is_published and self.parent_id and self.parent and not self.parent.is_published:
+            raise ValidationError({
+                "is_published": "Cannot publish a section inside an unpublished parent section."
+            })
+
+    def get_descendant_ids(self):
+        descendant_ids = []
+        stack = list(self.children.values_list("id", flat=True))
+
+        while stack:
+            current_id = stack.pop()
+            descendant_ids.append(current_id)
+
+            child_ids = Section.objects.filter(parent_id=current_id).values_list("id", flat=True)
+            stack.extend(child_ids)
+
+        return descendant_ids
+
+    @transaction.atomic
+    def unpublish_descendants_and_cards(self):
+        descendant_ids = self.get_descendant_ids()
+        section_ids = [self.id, *descendant_ids]
+
+        Section.objects.filter(id__in=descendant_ids).update(is_published=False)
+        Card.objects.filter(section_id__in=section_ids).update(is_published=False)
+
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
+
         title_changed = False
+        was_published = None
+
         if self.pk:
-            old_instance = Section.objects.filter(pk=self.pk).only("title").first()
-            if old_instance and normalize_title(old_instance.title) != self.title:
-                title_changed = True
-        self.full_clean()
+            old_instance = Section.objects.filter(pk=self.pk).only(
+                "title",
+                "is_published",
+            ).first()
+
+            if old_instance:
+                was_published = old_instance.is_published
+
+                if normalize_title(old_instance.title) != self.title:
+                    title_changed = True
+
         if not self.slug or title_changed:
             self.slug = generate_unique_slug(
                 Section,
@@ -87,7 +125,12 @@ class Section(models.Model):
                 self.pk,
                 fallback="section",
             )
+
+        self.full_clean()
         super().save(*args, **kwargs)
+
+        if was_published is True and self.is_published is False:
+            self.unpublish_descendants_and_cards()
 
     def __str__(self):
         return self.title
@@ -122,10 +165,18 @@ class Card(models.Model):
         db_table = "cards"
         ordering = ("title",)
 
+    def clean(self):
+        if self.is_published and self.section_id and self.section and not self.section.is_published:
+            raise ValidationError({
+                "is_published": "Cannot publish a card inside an unpublished section."
+            })
+
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
+
         old_image = None
         title_changed = False
+
         if self.pk:
             try:
                 old_instance = Card.objects.get(pk=self.pk)
@@ -136,6 +187,7 @@ class Card(models.Model):
 
             except Card.DoesNotExist:
                 old_image = None
+
         if not self.slug or title_changed:
             self.slug = generate_unique_slug(
                 Card,
@@ -143,9 +195,13 @@ class Card(models.Model):
                 self.pk,
                 fallback="card",
             )
+
+        self.full_clean()
         super().save(*args, **kwargs)
+
         old_name = old_image.name if old_image else ""
         new_name = self.main_image.name if self.main_image else ""
+
         if old_name and old_name != new_name:
             if old_image.storage.exists(old_name):
                 old_image.storage.delete(old_name)
@@ -165,6 +221,7 @@ class CardMedia(models.Model):
     VIDEO = "video"
     AUDIO = "audio"
     DOCUMENT = "document"
+    original_filename = models.CharField(max_length=255, blank=True)
 
     MEDIA_TYPE_CHOICES = (
         (IMAGE, "Image"),
@@ -197,17 +254,21 @@ class CardMedia(models.Model):
     def detect_media_type(self):
         if not self.file:
             return ""
+
         ext = os.path.splitext(self.file.name)[1].lower()
+
         if ext in self.IMAGE_EXTENSIONS:
             return self.IMAGE
         if ext in self.VIDEO_EXTENSIONS:
             return self.VIDEO
         if ext in self.AUDIO_EXTENSIONS:
             return self.AUDIO
+
         return self.DOCUMENT
 
     def clean(self):
         super().clean()
+
         if self.file:
             ext = os.path.splitext(self.file.name)[1].lower()
             allowed_exts = (
@@ -216,17 +277,22 @@ class CardMedia(models.Model):
                 | self.AUDIO_EXTENSIONS
                 | self.DOCUMENT_EXTENSIONS
             )
+
             if ext not in allowed_exts:
                 raise ValidationError({"file": f"Unsupported file type: {ext}"})
 
     def save(self, *args, **kwargs):
         old_file = None
+
         if self.pk:
             try:
                 old_instance = CardMedia.objects.get(pk=self.pk)
                 old_file = old_instance.file
             except CardMedia.DoesNotExist:
                 old_file = None
+
+        if self.file and not self.original_filename:
+            self.original_filename = os.path.basename(self.file.name)
 
         if self.file and not self.media_type:
             self.media_type = self.detect_media_type()
@@ -246,6 +312,7 @@ class CardMedia(models.Model):
     def delete(self, *args, **kwargs):
         file_obj = self.file
         super().delete(*args, **kwargs)
+
         if file_obj and file_obj.name and file_obj.storage.exists(file_obj.name):
             file_obj.storage.delete(file_obj.name)
 

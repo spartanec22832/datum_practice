@@ -99,10 +99,9 @@ export default function CardCreatePage() {
             return;
         }
 
-        const newItems = files.map((file, index) => ({
+        const newItems = files.map((file) => ({
             file,
             caption: "",
-            sort_order: attachments.length + index,
         }));
 
         setAttachments((prev) => [...prev, ...newItems]);
@@ -115,7 +114,7 @@ export default function CardCreatePage() {
                 itemIndex === index
                     ? {
                         ...item,
-                        [field]: field === "sort_order" ? Number(value) || 0 : value,
+                        [field]: value,
                     }
                     : item
             )
@@ -151,11 +150,11 @@ export default function CardCreatePage() {
 
             const createdCard = await createCard(cardPayload, true);
 
-            for (const item of attachments) {
+            for (const [index, item] of attachments.entries()) {
                 const mediaPayload = new FormData();
                 mediaPayload.append("file", item.file);
                 mediaPayload.append("caption", item.caption);
-                mediaPayload.append("sort_order", item.sort_order);
+                mediaPayload.append("sort_order", index);
                 mediaPayload.append("media_type", getMediaType(item.file.name));
 
                 await createCardMedia(createdCard.id, mediaPayload);
@@ -354,24 +353,6 @@ export default function CardCreatePage() {
                                                     handleAttachmentFieldChange(
                                                         index,
                                                         "caption",
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                                Порядок
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={item.sort_order}
-                                                onChange={(event) =>
-                                                    handleAttachmentFieldChange(
-                                                        index,
-                                                        "sort_order",
                                                         event.target.value
                                                     )
                                                 }
