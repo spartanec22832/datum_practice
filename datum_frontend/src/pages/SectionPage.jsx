@@ -5,8 +5,10 @@ import {
     getSectionBySlug,
     getSectionContent,
 } from "../services/sections";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { useAuth } from "../context/AuthContext";
 import CardPage from "./CardPage";
+import { getApiErrorMessages } from "../utils/apiError";
 
 function normalizeSectionPath(path) {
     return (path || "").replace(/^\/+|\/+$/g, "");
@@ -202,7 +204,12 @@ export default function SectionPage() {
                 });
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить раздел.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -230,7 +237,12 @@ export default function SectionPage() {
             navigate("/sections");
         } catch (err) {
             console.error(err);
-            setError("Не удалось удалить секцию.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b."
+                )
+            );
             setIsDeleteModalOpen(false);
         } finally {
             setIsDeleting(false);
@@ -255,11 +267,7 @@ export default function SectionPage() {
     }
 
     if (error && !section) {
-        return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                {error}
-            </div>
-        );
+        return <ErrorAlertStack error={error} />;
     }
 
     if (!section) {
@@ -350,11 +358,7 @@ export default function SectionPage() {
                 </div>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             <section className="space-y-5">
                 <div>

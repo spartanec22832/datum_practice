@@ -6,7 +6,9 @@ import {
     getCardBySlug,
     updateCard,
 } from "../services/cards";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 function getMediaType(fileName) {
     const lowerName = fileName.toLowerCase();
@@ -105,7 +107,12 @@ export default function CardEditPage() {
                 });
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить карточку для редактирования.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0434\u043b\u044f \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -182,7 +189,12 @@ export default function CardEditPage() {
             });
         } catch (err) {
             console.error(err);
-            setError("Не удалось удалить вложение карточки.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438."
+                )
+            );
         }
     }
 
@@ -258,7 +270,12 @@ export default function CardEditPage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось сохранить изменения карточки.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438."
+                )
+            );
         } finally {
             setIsSaving(false);
         }
@@ -353,11 +370,7 @@ export default function CardEditPage() {
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -367,6 +380,7 @@ export default function CardEditPage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-8 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <section className="space-y-6">

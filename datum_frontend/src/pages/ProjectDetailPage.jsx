@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { deleteProject, getProjectBySlug } from "../services/projects";
 import ProjectMiniMap from "../components/ProjectMiniMap";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 export default function ProjectDetailPage() {
     const { slug } = useParams();
@@ -28,7 +30,12 @@ export default function ProjectDetailPage() {
                 setProject(data);
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить проект.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043f\u0440\u043e\u0435\u043a\u0442."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -76,7 +83,12 @@ export default function ProjectDetailPage() {
             navigate("/projects");
         } catch (err) {
             console.error(err);
-            setError("Не удалось удалить проект.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u043f\u0440\u043e\u0435\u043a\u0442."
+                )
+            );
             setIsDeleteModalOpen(false);
         } finally {
             setIsDeleting(false);
@@ -96,9 +108,7 @@ export default function ProjectDetailPage() {
     if (error && !project) {
         return (
             <section className="space-y-4">
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
+                <ErrorAlertStack error={error} />
             </section>
         );
     }
@@ -170,11 +180,7 @@ export default function ProjectDetailPage() {
                         )}
                     </div>
 
-                    {error && (
-                        <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                            {error}
-                        </div>
-                    )}
+                    <ErrorAlertStack error={error} />
 
                     <article className="overflow-hidden rounded-b-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                         {imageUrl ? (

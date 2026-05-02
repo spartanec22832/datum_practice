@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { getSections } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 function SectionTile({ section, isAdmin }) {
     const authorName =
@@ -89,7 +91,12 @@ export default function SectionsPage() {
                 }
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить секции.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b\u044b."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -180,11 +187,7 @@ export default function SectionsPage() {
                     </div>
                 )}
 
-                {!isLoading && error && (
-                    <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                        {error}
-                    </div>
-                )}
+                {!isLoading && <ErrorAlertStack error={error} />}
 
                 {!isLoading && !error && rootSections.length === 0 && (
                     <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">

@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { getProjects } from "../services/projects";
 import ProjectsMap from "../components/ProjectsMap";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 function ProjectCard({ project, isAdmin, isActive, onSelectProject }) {
     function handleKeyDown(event) {
@@ -95,7 +97,12 @@ export default function ProjectsPage() {
                 }
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить список проектов.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0441\u043f\u0438\u0441\u043e\u043a \u043f\u0440\u043e\u0435\u043a\u0442\u043e\u0432."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -131,7 +138,9 @@ export default function ProjectsPage() {
             activeProject &&
             !filteredProjects.some((project) => project.id === activeProject.id)
         ) {
-            setActiveProject(null);
+            startTransition(() => {
+                setActiveProject(null);
+            });
         }
     }, [filteredProjects, activeProject]);
 
@@ -184,11 +193,7 @@ export default function ProjectsPage() {
                 </div>
             )}
 
-            {!isLoading && error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            {!isLoading && <ErrorAlertStack error={error} />}
 
             {!isLoading && !error && (
                 <>

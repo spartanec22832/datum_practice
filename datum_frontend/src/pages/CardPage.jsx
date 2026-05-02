@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { deleteCard, getCardBySlug } from "../services/cards";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 
 function normalizeSectionPath(path) {
@@ -141,7 +143,12 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
                 setCard(data);
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить карточку.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -210,7 +217,12 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
             navigate(backToSectionPath);
         } catch (err) {
             console.error(err);
-            setError("Не удалось удалить карточку.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
+                )
+            );
             setIsDeleteModalOpen(false);
         } finally {
             setIsDeleting(false);
@@ -226,11 +238,7 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
     }
 
     if (error && !card) {
-        return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                {error}
-            </div>
-        );
+        return <ErrorAlertStack error={error} />;
     }
 
     if (!card) {
@@ -314,12 +322,7 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
                 )}
             </section>
 
-            {error && (
-                <div
-                    className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             <article
                 className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
