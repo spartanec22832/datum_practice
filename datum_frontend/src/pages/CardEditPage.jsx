@@ -217,11 +217,8 @@ export default function CardEditPage() {
                     title: formData.title,
                     summary: formData.summary,
                     content: formData.content,
+                    is_published: formData.is_published,
                 };
-
-                if (isAdmin) {
-                    payload.is_published = formData.is_published;
-                }
 
                 updatedCard = await updateCard(card.id, payload, false);
             } else {
@@ -230,9 +227,7 @@ export default function CardEditPage() {
                 payload.append("summary", formData.summary);
                 payload.append("content", formData.content);
 
-                if (isAdmin) {
-                    payload.append("is_published", formData.is_published);
-                }
+                payload.append("is_published", String(formData.is_published));
 
                 if (formData.main_image) {
                     payload.append("main_image", formData.main_image);
@@ -471,7 +466,7 @@ export default function CardEditPage() {
                         </div>
                     )}
 
-                    {isAdmin && (
+                    <div className="space-y-2">
                         <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
                             <input
                                 type="checkbox"
@@ -483,7 +478,11 @@ export default function CardEditPage() {
                                 Опубликована
                             </span>
                         </label>
-                    )}
+
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Если снять галочку, карточка станет черновиком и будет видна только вам и администратору.
+                        </p>
+                    </div>
                 </section>
 
                 <section className="space-y-5">

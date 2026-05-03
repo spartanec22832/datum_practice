@@ -69,7 +69,7 @@ export default function SectionCreatePage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: isAdmin ? formData.is_published : true,
+                is_published: formData.is_published,
             };
 
             if (formData.parent) {
@@ -202,7 +202,7 @@ export default function SectionCreatePage() {
                     </select>
                 </div>
 
-                {isAdmin && (
+                <div className="space-y-2">
                     <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
                         <input
                             type="checkbox"
@@ -210,9 +210,15 @@ export default function SectionCreatePage() {
                             checked={formData.is_published}
                             onChange={handleChange}
                         />
-                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                            Опубликовать сразу
+                        </span>
                     </label>
-                )}
+
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Если снять галочку, секция сохранится как черновик и будет видна вам и администратору.
+                    </p>
+                </div>
 
                 <div className="flex gap-3">
                     <button

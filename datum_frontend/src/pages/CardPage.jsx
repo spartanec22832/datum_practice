@@ -47,6 +47,20 @@ function getFileName(filePath) {
     }
 }
 
+function PublishBadge({ isPublished }) {
+    return isPublished ? (
+        <span className="inline-flex h-8 items-center gap-2 rounded-full bg-green-50 px-3 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Опубликовано
+        </span>
+    ) : (
+        <span className="inline-flex h-8 items-center gap-2 rounded-full bg-red-50 px-3 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            Не опубликовано
+        </span>
+    );
+}
+
 function MediaItemCard({ item }) {
     const rawFilePath = item.file || item.file_path;
     const fileUrl = getFileUrl(rawFilePath);
@@ -339,22 +353,25 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
                 )}
 
                 <div className="space-y-5 p-6">
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-400">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
                         <span>
                             Автор:{" "}
                             {typeof card.author === "object"
-                                ? card.author?.username ||
-                                card.author?.email ||
-                                `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
-                                "Не указан"
-                                : card.author_username || card.author_email || "Не указан"}
+                            ? card.author?.username ||
+                            card.author?.email ||
+                            `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
+                            "Не указан"
+                            : card.author_username || card.author_email || "Не указан"}
                         </span>
+
                         <span>
                             Обновлено{" "}
                             {card.updated_at
                                 ? new Date(card.updated_at).toLocaleDateString("ru-RU")
                                 : "—"}
                         </span>
+
+                        {canManageCard && <PublishBadge isPublished={card.is_published}/>}
                     </div>
 
                     <div className="space-y-4 text-sm leading-7 text-slate-700 dark:text-slate-200">

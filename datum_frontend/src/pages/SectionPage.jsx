@@ -55,9 +55,10 @@ function AuthorBadge({ authorName }) {
     );
 }
 
-function SectionTile({ section, isAdmin, currentSectionPath }) {
+function SectionTile({ section, canManageKnowledgeItem, currentSectionPath }) {
     const authorName = getAuthorName(section);
     const normalizedCurrentPath = normalizeSectionPath(currentSectionPath);
+    const canSeePublishStatus = canManageKnowledgeItem(section);
 
     const targetPath = normalizedCurrentPath
         ? `/sections/${normalizedCurrentPath}/${section.slug}`
@@ -72,7 +73,7 @@ function SectionTile({ section, isAdmin, currentSectionPath }) {
                 <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <AuthorBadge authorName={authorName} />
-                        {isAdmin && <PublishBadge isPublished={section.is_published} />}
+                        {canSeePublishStatus && <PublishBadge isPublished={section.is_published} />}
                     </div>
 
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
@@ -93,9 +94,10 @@ function SectionTile({ section, isAdmin, currentSectionPath }) {
     );
 }
 
-function CardTile({ card, isAdmin, currentSectionPath }) {
+function CardTile({ card, canManageKnowledgeItem, currentSectionPath }) {
     const authorName = getAuthorName(card);
     const normalizedCurrentPath = normalizeSectionPath(currentSectionPath);
+    const canSeePublishStatus = canManageKnowledgeItem(card);
 
     const targetPath = normalizedCurrentPath
         ? `/sections/${normalizedCurrentPath}/cards/${card.slug}`
@@ -110,7 +112,7 @@ function CardTile({ card, isAdmin, currentSectionPath }) {
                 <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <AuthorBadge authorName={authorName} />
-                        {isAdmin && <PublishBadge isPublished={card.is_published} />}
+                        {canSeePublishStatus && <PublishBadge isPublished={card.is_published} />}
                     </div>
 
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
@@ -129,7 +131,7 @@ function CardTile({ card, isAdmin, currentSectionPath }) {
 export default function SectionPage() {
     const params = useParams();
     const navigate = useNavigate();
-    const { isAdmin, canCreateKnowledge, canManageKnowledgeItem } = useAuth();
+    const { canCreateKnowledge, canManageKnowledgeItem } = useAuth();
 
     const sectionPath = normalizeSectionPath(params["*"] || params.slug || "");
     const sectionPathParts = sectionPath.split("/").filter(Boolean);
@@ -357,7 +359,7 @@ export default function SectionPage() {
                             <SectionTile
                                 key={item.id}
                                 section={item}
-                                isAdmin={isAdmin}
+                                canManageKnowledgeItem={canManageKnowledgeItem}
                                 currentSectionPath={sectionPath}
                             />
                         ))}
@@ -385,7 +387,7 @@ export default function SectionPage() {
                             <CardTile
                                 key={item.id}
                                 card={item}
-                                isAdmin={isAdmin}
+                                canManageKnowledgeItem={canManageKnowledgeItem}
                                 currentSectionPath={sectionPath}
                             />
                         ))}

@@ -5,7 +5,7 @@ import { getSections } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
 import { getApiErrorMessages } from "../utils/apiError";
 
-function SectionTile({ section, isAdmin }) {
+function SectionTile({ section, canManageKnowledgeItem }) {
     const authorName =
         typeof section.author === "object"
             ? section.author?.username ||
@@ -17,6 +17,7 @@ function SectionTile({ section, isAdmin }) {
             section.author_first_name ||
             section.author_last_name ||
             (section.author ? `ID ${section.author}` : "Не указан");
+    const canSeePublishStatus = canManageKnowledgeItem(section);
 
     return (
         <Link
@@ -30,7 +31,7 @@ function SectionTile({ section, isAdmin }) {
                             Автор: {authorName}
                         </span>
 
-                        {isAdmin &&
+                        {canSeePublishStatus &&
                             (section.is_published ? (
                                 <span className="inline-flex h-8 items-center gap-2 rounded-full bg-green-50 px-3 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
                                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -63,7 +64,7 @@ function SectionTile({ section, isAdmin }) {
 }
 
 export default function SectionsPage() {
-    const { isAdmin, canCreateKnowledge } = useAuth();
+    const { canCreateKnowledge, canManageKnowledgeItem } = useAuth();
 
     const [sections, setSections] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -212,7 +213,7 @@ export default function SectionsPage() {
                                 <SectionTile
                                     key={section.id}
                                     section={section}
-                                    isAdmin={isAdmin}
+                                    canManageKnowledgeItem={canManageKnowledgeItem}
                                 />
                             ))}
                         </div>

@@ -148,7 +148,7 @@ export default function CardCreatePage() {
             cardPayload.append("title", formData.title);
             cardPayload.append("summary", formData.summary);
             cardPayload.append("content", formData.content);
-            cardPayload.append("is_published", isAdmin ? String(formData.is_published) : "true");
+            cardPayload.append("is_published", String(formData.is_published));
             cardPayload.append("section", section.id);
 
             if (formData.main_image) {
@@ -383,7 +383,7 @@ export default function CardCreatePage() {
                     )}
                 </div>
 
-                {isAdmin && (
+                <div className="space-y-2">
                     <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
                         <input
                             type="checkbox"
@@ -391,9 +391,15 @@ export default function CardCreatePage() {
                             checked={formData.is_published}
                             onChange={handleChange}
                         />
-                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                            Опубликовать сразу
+                        </span>
                     </label>
-                )}
+
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Если снять галочку, карточка сохранится как черновик и будет видна вам и администратору.
+                    </p>
+                </div>
 
                 <div className="flex gap-3">
                     <button
