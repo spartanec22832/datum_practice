@@ -315,6 +315,15 @@ export default function SectionPage() {
 
                     {canCreateKnowledge && (
                         <Link
+                            to={`/sections/create?parent=${section.id}&parentPath=${encodeURIComponent(sectionPath)}`}
+                            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+                        >
+                            + Добавить подсекцию
+                        </Link>
+                    )}
+
+                    {canCreateKnowledge && (
+                        <Link
                             to={`/sections/${section.slug}/cards/create`}
                             className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                         >

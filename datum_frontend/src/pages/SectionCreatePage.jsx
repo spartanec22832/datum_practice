@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ErrorAlertStack from "../components/ErrorAlertStack";
 import { createSection, getSections } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
@@ -7,13 +7,17 @@ import { getApiErrorMessages } from "../utils/apiError";
 
 export default function SectionCreatePage() {
     const navigate = useNavigate();
-    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
+    const [searchParams] = useSearchParams();
+    const {canCreateKnowledge, isAuthLoading } = useAuth();
+
+    const parentFromQuery = searchParams.get("parent") || "";
+    const parentPathFromQuery = searchParams.get("parentPath") || "";
 
     const [sections, setSections] = useState([]);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        parent: "",
+        parent: parentFromQuery,
         is_published: true,
     });
 
@@ -81,6 +85,11 @@ export default function SectionCreatePage() {
             setSuccessMessage("Секция успешно создана.");
 
             setTimeout(() => {
+                if (parentPathFromQuery) {
+                    navigate(`/sections/${parentPathFromQuery}/${created.slug}`);
+                    return;
+                }
+
                 navigate(`/sections/${created.slug}`);
             }, 700);
         } catch (err) {
