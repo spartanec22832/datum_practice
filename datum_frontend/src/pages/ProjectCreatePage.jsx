@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ErrorAlertStack from "../components/ErrorAlertStack";
+import { useAuth } from "../context/AuthContext";
 import { createProject } from "../services/projects";
 import { getApiErrorMessages } from "../utils/apiError";
 
 export default function ProjectCreatePage() {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin" || user?.is_staff;
 
     const [formData, setFormData] = useState({
         title: "",
@@ -144,6 +147,31 @@ export default function ProjectCreatePage() {
         } finally {
             setIsSaving(false);
         }
+    }
+
+    if (!isAdmin) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <Link to="/projects" className="transition hover:text-slate-700 dark:text-slate-200">
+                        Проекты
+                    </Link>
+                    <span>/</span>
+                    <span className="text-slate-500 dark:text-slate-400">Создание</span>
+                </div>
+
+                <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700 shadow-sm dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                    У вас нет прав для создания проектов.
+                </div>
+
+                <Link
+                    to="/projects"
+                    className="inline-flex rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                    Вернуться к проектам
+                </Link>
+            </div>
+        );
     }
 
     return (
