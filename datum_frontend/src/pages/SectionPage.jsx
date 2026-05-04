@@ -298,9 +298,15 @@ export default function SectionPage() {
                     <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                         {section.title}
                     </h1>
-                    <p className="text-sm text-slate-400">
-                        Автор: {getAuthorName(section)}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm text-slate-400">
+                            Автор: {getAuthorName(section)}
+                        </p>
+
+                        {canManageSection && (
+                            <PublishBadge isPublished={section.is_published}/>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap gap-3">

@@ -85,6 +85,17 @@ export default function CardCreatePage() {
         loadSection();
     }, [slug]);
 
+    const isSectionDraft = Boolean(section && !section.is_published);
+
+    useEffect(() => {
+        if (isSectionDraft && formData.is_published) {
+            setFormData((prev) => ({
+                ...prev,
+                is_published: false,
+            }));
+        }
+    }, [isSectionDraft, formData.is_published]);
+
     function handleChange(event) {
         const { name, value, type, checked, files } = event.target;
 
@@ -148,7 +159,7 @@ export default function CardCreatePage() {
             cardPayload.append("title", formData.title);
             cardPayload.append("summary", formData.summary);
             cardPayload.append("content", formData.content);
-            cardPayload.append("is_published", String(formData.is_published));
+            cardPayload.append("is_published", String(isSectionDraft ? false : formData.is_published));
             cardPayload.append("section", section.id);
 
             if (formData.main_image) {
@@ -390,15 +401,22 @@ export default function CardCreatePage() {
                             name="is_published"
                             checked={formData.is_published}
                             onChange={handleChange}
+                            disabled={isSectionDraft}
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-200">
                             Опубликовать сразу
                         </span>
                     </label>
 
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Если снять галочку, карточка сохранится как черновик и будет видна вам и администратору.
-                    </p>
+                    {isSectionDraft ? (
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            Эта секция не опубликована, поэтому новая карточка будет сохранена как черновик.
+                        </p>
+                    ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Если снять галочку, карточка сохранится как черновик и будет видна вам и администратору.
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex gap-3">

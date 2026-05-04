@@ -53,6 +53,29 @@ export default function SectionCreatePage() {
         return sections;
     }, [sections]);
 
+    const selectedParentSection = useMemo(() => {
+        if (!formData.parent) {
+            return null;
+        }
+
+        return sections.find(
+            (section) => Number(section.id) === Number(formData.parent)
+        ) || null;
+    }, [sections, formData.parent]);
+
+    const isParentSectionDraft = Boolean(
+        selectedParentSection && !selectedParentSection.is_published
+    );
+
+    useEffect(() => {
+        if (isParentSectionDraft && formData.is_published) {
+            setFormData((prev) => ({
+                ...prev,
+                is_published: false,
+            }));
+        }
+    }, [isParentSectionDraft, formData.is_published]);
+
     function handleChange(event) {
         const { name, value, type, checked } = event.target;
 
@@ -73,7 +96,7 @@ export default function SectionCreatePage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: formData.is_published,
+                is_published: isParentSectionDraft ? false : formData.is_published,
             };
 
             if (formData.parent) {
@@ -218,15 +241,22 @@ export default function SectionCreatePage() {
                             name="is_published"
                             checked={formData.is_published}
                             onChange={handleChange}
+                            disabled={isParentSectionDraft}
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-200">
                             Опубликовать сразу
                         </span>
                     </label>
 
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Если снять галочку, секция сохранится как черновик и будет видна вам и администратору.
-                    </p>
+                    {isParentSectionDraft ? (
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            Родительская секция не опубликована, поэтому новая подсекция будет сохранена как черновик.
+                        </p>
+                    ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Если снять галочку, секция сохранится как черновик и будет видна вам и администратору.
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex gap-3">
