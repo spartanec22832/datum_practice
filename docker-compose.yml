@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:16
+    container_name: datum_db
+    restart: unless-stopped
+    env_file:
+      - ./.env.docker
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./datum_backend
+    container_name: datum_backend
+    restart: unless-stopped
+    env_file:
+      - ./.env.docker
+    environment:
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./datum_frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_MEDIA_BASE_URL: ${VITE_MEDIA_BASE_URL}
+    container_name: datum_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/staticfiles:ro
+      - media_volume:/media:ro
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
