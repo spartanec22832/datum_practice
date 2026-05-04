@@ -5,6 +5,7 @@ from slugify import slugify
 import os
 import uuid
 import re
+import shutil
 
 
 def normalize_title(value: str) -> str:
@@ -218,9 +219,24 @@ class Card(models.Model):
 
     def delete(self, *args, **kwargs):
         image = self.main_image
+
+        attachments_dir = os.path.join(
+            settings.MEDIA_ROOT,
+            "cards",
+            "attachments",
+            str(self.id),
+        )
+
+        for media_item in self.media_items.all():
+            media_item.delete()
+
         super().delete(*args, **kwargs)
+
         if image and image.name and image.storage.exists(image.name):
             image.storage.delete(image.name)
+
+        if os.path.isdir(attachments_dir):
+            shutil.rmtree(attachments_dir, ignore_errors=True)
 
     def __str__(self):
         return self.title
