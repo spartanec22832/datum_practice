@@ -5,6 +5,16 @@ import { getSectionBySlug, getSections, updateSection } from "../services/sectio
 import { useAuth } from "../context/AuthContext";
 import { getApiErrorMessages } from "../utils/apiError";
 
+function getSectionParentId(section) {
+    if (!section?.parent) {
+        return null;
+    }
+
+    return typeof section.parent === "object"
+        ? section.parent.id
+        : section.parent;
+}
+
 export default function SectionEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
@@ -67,9 +77,36 @@ export default function SectionEditPage() {
         loadData();
     }, [slug]);
 
+    function getDescendantIds(sectionId, allSections) {
+        const result = new Set();
+
+        function collect(parentId) {
+            allSections
+                .filter((item) => Number(getSectionParentId(item)) === Number(parentId))
+                .forEach((child) => {
+                    result.add(Number(child.id));
+                    collect(child.id);
+                });
+        }
+
+        collect(sectionId);
+
+        return result;
+    }
+
     const parentOptions = useMemo(() => {
-        if (!section) return sections;
-        return sections.filter((item) => item.id !== section.id);
+        if (!section) {
+            return sections;
+        }
+
+        const descendantIds = getDescendantIds(section.id, sections);
+
+        return sections.filter((item) => {
+            const isCurrentSection = Number(item.id) === Number(section.id);
+            const isDescendant = descendantIds.has(Number(item.id));
+
+            return !isCurrentSection && !isDescendant;
+        });
     }, [sections, section]);
 
     function handleChange(event) {
