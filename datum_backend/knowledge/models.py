@@ -73,12 +73,20 @@ class Section(models.Model):
     def clean(self):
         if self.parent_id and self.parent_id == self.pk:
             raise ValidationError({
-                "parent": "\u0420\u0430\u0437\u0434\u0435\u043b \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0431\u044b\u0442\u044c \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u0435\u043c \u0441\u0430\u043c \u0434\u043b\u044f \u0441\u0435\u0431\u044f."
+                "parent": "Раздел не может быть родителем сам для себя."
             })
+
+        if self.pk and self.parent_id:
+            descendant_ids = self.get_descendant_ids()
+
+            if self.parent_id in descendant_ids:
+                raise ValidationError({
+                    "parent": "Нельзя выбрать дочерний раздел в качестве родительского."
+                })
 
         if self.is_published and self.parent_id and self.parent and not self.parent.is_published:
             raise ValidationError({
-                "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b \u0432\u043d\u0443\u0442\u0440\u0438 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u0433\u043e \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0433\u043e \u0440\u0430\u0437\u0434\u0435\u043b\u0430."
+                "is_published": "Нельзя публиковать раздел внутри неопубликованного родительского раздела."
             })
 
     def get_descendant_ids(self):

@@ -181,6 +181,23 @@ class SectionSerializer(serializers.ModelSerializer):
             self.instance.is_published if self.instance else False,
         )
 
+        if self.instance and parent:
+            if parent.pk == self.instance.pk:
+                raise serializers.ValidationError(
+                    {
+                        "parent": "\u0420\u0430\u0437\u0434\u0435\u043b \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0431\u044b\u0442\u044c \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u0435\u043c \u0441\u0430\u043c \u0434\u043b\u044f \u0441\u0435\u0431\u044f."
+                    }
+                )
+
+            descendant_ids = self.instance.get_descendant_ids()
+
+            if parent.pk in descendant_ids:
+                raise serializers.ValidationError(
+                    {
+                        "parent": "\u041d\u0435\u043b\u044c\u0437\u044f \u0432\u044b\u0431\u0440\u0430\u0442\u044c \u0434\u043e\u0447\u0435\u0440\u043d\u0438\u0439 \u0440\u0430\u0437\u0434\u0435\u043b \u0432 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0435 \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0433\u043e."
+                    }
+                )
+
         if is_published and parent and not parent.is_published:
             raise serializers.ValidationError(
                 {
