@@ -16,6 +16,7 @@ import SectionCreatePage from "./pages/SectionCreatePage";
 import SectionEditPage from "./pages/SectionEditPage";
 import CardCreatePage from "./pages/CardCreatePage";
 import CardEditPage from "./pages/CardEditPage";
+import PublicOnlyRoute from "./components/PublicOnlyRoute";
 
 export default function App() {
     return (
@@ -26,7 +27,9 @@ export default function App() {
                         <Route index element={<HomePage />} />
                         <Route path="projects" element={<ProjectsPage />} />
                         <Route path="projects/:slug" element={<ProjectDetailPage />} />
-                        <Route path="login" element={<LoginPage />} />
+                        <Route element={<PublicOnlyRoute redirectTo="/sections" />}>
+                            <Route path="login" element={<LoginPage />} />
+                        </Route>
                         <Route path="projects/:slug/edit" element={<ProjectEditPage />} />
 
                         <Route element={<ProtectedRoute />}>
