@@ -73,7 +73,7 @@ function getFileName(filePath) {
 export default function CardEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading, canManageKnowledgeItem } = useAuth();
+    const {isAuthLoading, canManageKnowledgeItem } = useAuth();
 
     const [card, setCard] = useState(null);
     const [formData, setFormData] = useState({

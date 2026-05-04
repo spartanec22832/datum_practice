@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
         try {
             setIsAuthLoading(true);
             const me = await getMe();
-            console.log("ME:", me);
             setUser(me);
         } catch (error) {
             console.error(error);

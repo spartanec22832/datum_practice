@@ -8,7 +8,7 @@ import { getApiErrorMessages } from "../utils/apiError";
 export default function SectionEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading, canManageKnowledgeItem } = useAuth();
+    const {isAuthLoading, canManageKnowledgeItem } = useAuth();
 
     const [section, setSection] = useState(null);
     const [sections, setSections] = useState([]);

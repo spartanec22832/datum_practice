@@ -44,6 +44,7 @@ class SectionListCreateView(generics.ListCreateAPIView):
 
 class SectionDetailView(generics.RetrieveAPIView):
     serializer_class = SectionSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "slug"
 
     def get_queryset(self):
@@ -53,6 +54,7 @@ class SectionDetailView(generics.RetrieveAPIView):
 
 class SectionContentView(generics.RetrieveAPIView):
     serializer_class = SectionContentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "slug"
 
     def get_queryset(self):
@@ -95,6 +97,7 @@ class CardListCreateView(generics.ListCreateAPIView):
 
 class CardDetailView(generics.RetrieveAPIView):
     serializer_class = CardReadSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "slug"
 
     def get_queryset(self):

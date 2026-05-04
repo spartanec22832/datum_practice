@@ -44,7 +44,7 @@ function getMediaType(fileName) {
 export default function CardCreatePage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
+    const {canCreateKnowledge, isAuthLoading } = useAuth();
 
     const [section, setSection] = useState(null);
     const [formData, setFormData] = useState({
