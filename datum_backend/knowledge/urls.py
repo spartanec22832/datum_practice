@@ -4,6 +4,7 @@ from .views import (
     CardDetailView,
     CardListCreateView,
     CardManageView,
+    CardMediaAllowedExtensionsView,
     CardMediaListCreateView,
     CardMediaManageView,
     SectionContentView,
@@ -28,6 +29,8 @@ urlpatterns = [
     path("cards/<int:card_id>/media/", CardMediaListCreateView.as_view(), name="card-media-list-create"),
 
     path("cards/<slug:slug>/", CardDetailView.as_view(), name="card-detail"),
+
+    path("media/allowed-extensions/", CardMediaAllowedExtensionsView.as_view(), name="card-media-allowed-extensions"),
 
     path("media/<int:pk>/", CardMediaManageView.as_view(), name="card-media-manage"),
 ]

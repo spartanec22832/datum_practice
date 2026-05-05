@@ -38,7 +38,7 @@ class Project(models.Model):
     )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
-    short_description = models.TextField()
+    short_description = models.CharField(max_length=200)
     full_description = models.TextField(blank=True)
     geojson = models.JSONField(blank=True, null=True)
     main_image = models.ImageField(upload_to="projects/main/", blank=True, null=True)

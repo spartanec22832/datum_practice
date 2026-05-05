@@ -1,5 +1,6 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+import os
 
 from .models import Card, CardMedia, Section
 
@@ -26,6 +27,21 @@ class CardMediaSerializer(serializers.ModelSerializer):
             "media_type",
             "created_at",
         )
+
+    def validate_file(self, value):
+        if not value:
+            return value
+
+        ext = os.path.splitext(value.name)[1].lower()
+        allowed_exts = set(CardMedia.get_allowed_extensions())
+
+        if ext not in allowed_exts:
+            suffix = ext or "\u0444\u0430\u0439\u043b \u0431\u0435\u0437 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043d\u0438\u044f"
+            raise serializers.ValidationError(
+                f"\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: {suffix}."
+            )
+
+        return value
 
 
 class CardReadSerializer(serializers.ModelSerializer):
