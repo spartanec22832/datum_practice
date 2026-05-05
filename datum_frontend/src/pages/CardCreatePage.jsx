@@ -1,44 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ErrorAlertStack from "../components/ErrorAlertStack";
-import { createCard, createCardMedia } from "../services/cards";
+import {
+    createCard,
+    createCardMedia,
+    getCardMediaAllowedExtensions,
+} from "../services/cards";
 import { getSectionBySlug } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
 import { getApiErrorMessages } from "../utils/apiError";
 
-function getMediaType(fileName) {
-    const lowerName = fileName.toLowerCase();
+function getFileExtension(fileName) {
+    const dotIndex = fileName.lastIndexOf(".");
+    return dotIndex === -1 ? "" : fileName.slice(dotIndex).toLowerCase();
+}
 
-    if (
-        lowerName.endsWith(".jpg") ||
-        lowerName.endsWith(".jpeg") ||
-        lowerName.endsWith(".png") ||
-        lowerName.endsWith(".gif") ||
-        lowerName.endsWith(".webp")
-    ) {
-        return "image";
+function isSupportedAttachment(file, allowedExtensions) {
+    if (!allowedExtensions) {
+        return true;
     }
 
-    if (
-        lowerName.endsWith(".mp4") ||
-        lowerName.endsWith(".mov") ||
-        lowerName.endsWith(".avi") ||
-        lowerName.endsWith(".mkv") ||
-        lowerName.endsWith(".webm")
-    ) {
-        return "video";
-    }
+    return allowedExtensions.has(getFileExtension(file.name));
+}
 
-    if (
-        lowerName.endsWith(".mp3") ||
-        lowerName.endsWith(".wav") ||
-        lowerName.endsWith(".ogg") ||
-        lowerName.endsWith(".m4a")
-    ) {
-        return "audio";
-    }
-
-    return "document";
+function getUnsupportedAttachmentMessage(files) {
+    const names = files.map((file) => file.name).join(", ");
+    return `\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: ${names}.`;
 }
 
 export default function CardCreatePage() {
@@ -59,6 +46,8 @@ export default function CardCreatePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
+    const [attachmentError, setAttachmentError] = useState("");
+    const [allowedAttachmentExtensions, setAllowedAttachmentExtensions] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
@@ -85,16 +74,25 @@ export default function CardCreatePage() {
         loadSection();
     }, [slug]);
 
-    const isSectionDraft = Boolean(section && !section.is_published);
-
     useEffect(() => {
-        if (isSectionDraft && formData.is_published) {
-            setFormData((prev) => ({
-                ...prev,
-                is_published: false,
-            }));
+        async function loadAllowedExtensions() {
+            try {
+                const data = await getCardMediaAllowedExtensions();
+                const extensions = Array.isArray(data.extensions)
+                    ? data.extensions
+                    : [];
+
+                setAllowedAttachmentExtensions(new Set(extensions));
+            } catch (err) {
+                console.error(err);
+                setAllowedAttachmentExtensions(null);
+            }
         }
-    }, [isSectionDraft, formData.is_published]);
+
+        loadAllowedExtensions();
+    }, []);
+
+    const isSectionDraft = Boolean(section && !section.is_published);
 
     function handleChange(event) {
         const { name, value, type, checked, files } = event.target;
@@ -117,7 +115,25 @@ export default function CardCreatePage() {
             return;
         }
 
-        const newItems = files.map((file) => ({
+        const unsupportedFiles = files.filter(
+            (file) => !isSupportedAttachment(file, allowedAttachmentExtensions)
+        );
+        const supportedFiles = files.filter((file) =>
+            isSupportedAttachment(file, allowedAttachmentExtensions)
+        );
+
+        if (unsupportedFiles.length > 0) {
+            setAttachmentError(getUnsupportedAttachmentMessage(unsupportedFiles));
+        } else {
+            setAttachmentError("");
+        }
+
+        if (supportedFiles.length === 0) {
+            event.target.value = "";
+            return;
+        }
+
+        const newItems = supportedFiles.map((file) => ({
             file,
             caption: "",
         }));
@@ -153,6 +169,7 @@ export default function CardCreatePage() {
         try {
             setIsSaving(true);
             setError("");
+            setAttachmentError("");
             setSuccessMessage("");
 
             const cardPayload = new FormData();
@@ -173,8 +190,6 @@ export default function CardCreatePage() {
                 mediaPayload.append("file", item.file);
                 mediaPayload.append("caption", item.caption);
                 mediaPayload.append("sort_order", index);
-                mediaPayload.append("media_type", getMediaType(item.file.name));
-
                 await createCardMedia(createdCard.id, mediaPayload);
             }
 
@@ -185,12 +200,19 @@ export default function CardCreatePage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError(
-                getApiErrorMessages(
-                    err,
-                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
-                )
+            const messages = getApiErrorMessages(
+                err,
+                "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
             );
+            const isAttachmentError = messages.some((message) =>
+                message.includes("\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430")
+            );
+
+            if (isAttachmentError) {
+                setAttachmentError(messages);
+            } else {
+                setError(messages);
+            }
         } finally {
             setIsSaving(false);
         }
@@ -350,6 +372,11 @@ export default function CardCreatePage() {
                         </p>
                     </div>
 
+                    <ErrorAlertStack
+                        error={attachmentError}
+                        itemClassName="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+                    />
+
                     {attachments.length > 0 && (
                         <div className="space-y-4">
                             {attachments.map((item, index) => (
@@ -399,7 +426,7 @@ export default function CardCreatePage() {
                         <input
                             type="checkbox"
                             name="is_published"
-                            checked={formData.is_published}
+                            checked={isSectionDraft ? false : formData.is_published}
                             onChange={handleChange}
                             disabled={isSectionDraft}
                         />

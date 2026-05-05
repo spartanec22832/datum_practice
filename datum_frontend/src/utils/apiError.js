@@ -97,6 +97,17 @@ function translateServerMessage(rawMessage) {
         return "";
     }
 
+    if (
+        message.includes("ValidationError") &&
+        message.includes("\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430")
+    ) {
+        const extensionMatch = message.match(
+            /\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430:\s*([^'"}<\s]+)/
+        );
+        const suffix = extensionMatch?.[1] || "\u043d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u044b\u0439 \u0442\u0438\u043f";
+        return `\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: ${suffix}.`;
+    }
+
     if (message.startsWith("Unsupported file type:")) {
         const extension = message.slice("Unsupported file type:".length).trim();
         const suffix = extension || "\u043d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u044b\u0439 \u0442\u0438\u043f";
