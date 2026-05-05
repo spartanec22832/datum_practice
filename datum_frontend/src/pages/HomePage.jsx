@@ -185,42 +185,6 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-10">
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div
-                        className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-white">
-                        <h3 className="text-2xl font-bold">Собственная платформа</h3>
-                        <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            DATUM GIS позиционируется как многофункциональная
-                            геоинформационная система для мониторинга, контроля и аналитики
-                            большого массива данных в пространственной привязке.
-                        </p>
-                    </div>
-
-                    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm ring-1 ring-slate-200 dark:border-slate-800 dark:bg-slate-900/90 dark:ring-slate-800">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                            Проекты для разных отраслей
-                        </h3>
-                        <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            На сайте компании представлены кейсы и внедрения для органов
-                            власти, региональных систем, водоканалов и других инфраструктурных
-                            организаций.
-                        </p>
-                    </div>
-
-                    <div  className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-900 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-white">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                            Единая цифровая среда
-                        </h3>
-                        <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
-                            Эта платформа помогает централизованно представить информацию о
-                            проектах компании и обеспечить удобную навигацию по корпоративным
-                            материалам для сотрудников.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
             <section className="mx-auto max-w-7xl px-6 pb-20 sm:px-8 lg:px-10">
                 <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-cyan-600 to-blue-700 p-8 text-white sm:p-10 lg:p-12">
                     <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
@@ -243,7 +207,7 @@ export default function HomePage() {
                                 to="/projects"
                                 className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
                             >
-                                Перейти к проектам
+                                К проектам
                             </Link>
                             {!isAuthenticated && (
                                 <Link
