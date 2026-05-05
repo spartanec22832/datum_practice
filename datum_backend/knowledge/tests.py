@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -95,6 +96,38 @@ class KnowledgeApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.card.refresh_from_db()
         self.assertEqual(self.card.title, "Approved onboarding")
+
+    def test_card_media_allowed_extensions_are_exposed(self):
+        response = self.client.get("/api/media/allowed-extensions/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn(".jsx", response.data["extensions"])
+        self.assertEqual(
+            sorted(response.data["extensions"]),
+            response.data["extensions"],
+        )
+
+    def test_unsupported_card_media_returns_validation_error(self):
+        self.client.force_authenticate(self.author)
+        response = self.client.post(
+            f"/api/cards/{self.card.id}/media/",
+            {
+                "file": SimpleUploadedFile(
+                    "map.geojson",
+                    b'{"type":"FeatureCollection","features":[]}',
+                    content_type="application/geo+json",
+                ),
+                "caption": "Map source",
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("file", response.data)
+        self.assertIn(
+            "\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: .geojson.",
+            str(response.data["file"][0]),
+        )
 
     def test_anonymous_section_content_returns_published_children_only(self):
         hidden_section = Section.objects.create(

@@ -259,7 +259,95 @@ class CardMedia(models.Model):
     IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
     VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
     AUDIO_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
-    DOCUMENT_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".xlsx", ".pptx"}
+    DOCUMENT_EXTENSIONS = {
+        # documents
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".txt",
+        ".rtf",
+        ".md",
+        ".markdown",
+
+        # tables / presentations
+        ".xls",
+        ".xlsx",
+        ".csv",
+        ".tsv",
+        ".ppt",
+        ".pptx",
+
+        # code
+        ".py",
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".html",
+        ".css",
+        ".scss",
+        ".sass",
+        ".json",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".toml",
+        ".ini",
+        ".env",
+        ".sh",
+        ".bash",
+        ".bat",
+        ".ps1",
+        ".sql",
+        ".java",
+        ".kt",
+        ".kts",
+        ".c",
+        ".h",
+        ".cpp",
+        ".hpp",
+        ".cs",
+        ".go",
+        ".rs",
+        ".php",
+        ".rb",
+        ".swift",
+        ".dart",
+        ".vue",
+        ".svelte",
+
+        # config / project files
+        ".gitignore",
+        ".dockerignore",
+        ".editorconfig",
+        ".lock",
+        ".log",
+
+        # archives
+        ".zip",
+        ".rar",
+        ".7z",
+        ".tar",
+        ".gz",
+    }
+
+    @classmethod
+    def get_allowed_extensions_by_type(cls):
+        return {
+            cls.IMAGE: sorted(cls.IMAGE_EXTENSIONS),
+            cls.VIDEO: sorted(cls.VIDEO_EXTENSIONS),
+            cls.AUDIO: sorted(cls.AUDIO_EXTENSIONS),
+            cls.DOCUMENT: sorted(cls.DOCUMENT_EXTENSIONS),
+        }
+
+    @classmethod
+    def get_allowed_extensions(cls):
+        extensions_by_type = cls.get_allowed_extensions_by_type()
+        return sorted({
+            extension
+            for extensions in extensions_by_type.values()
+            for extension in extensions
+        })
 
     card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name="media_items")
     file = models.FileField(
@@ -269,7 +357,7 @@ class CardMedia(models.Model):
         null=True,
     )
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPE_CHOICES, blank=True)
-    caption = models.CharField(max_length=255, blank=True)
+    caption = models.CharField(max_length=30, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -297,12 +385,7 @@ class CardMedia(models.Model):
 
         if self.file:
             ext = os.path.splitext(self.file.name)[1].lower()
-            allowed_exts = (
-                self.IMAGE_EXTENSIONS
-                | self.VIDEO_EXTENSIONS
-                | self.AUDIO_EXTENSIONS
-                | self.DOCUMENT_EXTENSIONS
-            )
+            allowed_exts = set(self.get_allowed_extensions())
 
             if ext not in allowed_exts:
                 raise ValidationError({

@@ -1,6 +1,8 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 
@@ -160,6 +162,16 @@ class CardMediaListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         card = self.get_card_for_write()
         serializer.save(card=card)
+
+
+class CardMediaAllowedExtensionsView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        return Response({
+            "extensions": CardMedia.get_allowed_extensions(),
+            "extensions_by_type": CardMedia.get_allowed_extensions_by_type(),
+        })
 
 
 class CardMediaManageView(generics.RetrieveUpdateDestroyAPIView):
