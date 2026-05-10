@@ -1,36 +1,53 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { getSections } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
-function SectionTile({ section, isAdmin }) {
+function SectionTile({ section, canManageKnowledgeItem }) {
+    const authorName =
+        typeof section.author === "object"
+            ? section.author?.username ||
+            section.author?.email ||
+            `${section.author?.first_name || ""} ${section.author?.last_name || ""}`.trim() ||
+            "Не указан"
+            : section.author_username ||
+            section.author_email ||
+            section.author_first_name ||
+            section.author_last_name ||
+            (section.author ? `ID ${section.author}` : "Не указан");
+    const canSeePublishStatus = canManageKnowledgeItem(section);
+
     return (
         <Link
             to={`/sections/${section.slug}`}
             className="block rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-slate-700"
         >
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                            Секция
-                        </p>
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span className="inline-flex h-8 items-center rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                            Автор: {authorName}
+                        </span>
 
-                        {isAdmin &&
+                        {canSeePublishStatus &&
                             (section.is_published ? (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500/100" />
+                                <span className="inline-flex h-8 items-center gap-2 rounded-full bg-green-50 px-3 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
                                     Опубликовано
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+                                <span className="inline-flex h-8 items-center gap-2 rounded-full bg-red-50 px-3 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                                     <span className="h-2 w-2 rounded-full bg-red-500" />
                                     Не опубликовано
                                 </span>
                             ))}
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{section.title}</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                        {section.title}
+                    </h2>
                 </div>
 
                 <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
@@ -47,7 +64,7 @@ function SectionTile({ section, isAdmin }) {
 }
 
 export default function SectionsPage() {
-    const { isAdmin, canCreateKnowledge } = useAuth();
+    const { canCreateKnowledge, canManageKnowledgeItem } = useAuth();
 
     const [sections, setSections] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +88,12 @@ export default function SectionsPage() {
                 }
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить секции.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "Не удалось загрузить разделы."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -116,7 +138,7 @@ export default function SectionsPage() {
                 </h1>
 
                 <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    Здесь собраны секции базы знаний. Открой нужную секцию, чтобы увидеть
+                    Здесь собраны секции базы знаний. Найдите нужную секцию или воспользуйтесь поиском, чтобы увидеть
                     вложенные разделы и карточки.
                 </p>
             </section>
@@ -142,8 +164,12 @@ export default function SectionsPage() {
             <section className="space-y-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Секции</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Всего: {rootSections.length}</p>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            Секции
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Всего: {rootSections.length}
+                        </p>
                     </div>
 
                     {canCreateKnowledge && (
@@ -162,11 +188,7 @@ export default function SectionsPage() {
                     </div>
                 )}
 
-                {!isLoading && error && (
-                    <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                        {error}
-                    </div>
-                )}
+                {!isLoading && <ErrorAlertStack error={error} />}
 
                 {!isLoading && !error && rootSections.length === 0 && (
                     <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
@@ -180,7 +202,7 @@ export default function SectionsPage() {
                     </div>
                 )}
 
-                {!isLoading && !error && filteredSections.length >= 0 && (
+                {!isLoading && !error && filteredSections.length > 0 && (
                     <>
                         <div className="text-sm text-slate-500 dark:text-slate-400">
                             Найдено: {filteredSections.length}
@@ -191,7 +213,7 @@ export default function SectionsPage() {
                                 <SectionTile
                                     key={section.id}
                                     section={section}
-                                    isAdmin={isAdmin}
+                                    canManageKnowledgeItem={canManageKnowledgeItem}
                                 />
                             ))}
                         </div>

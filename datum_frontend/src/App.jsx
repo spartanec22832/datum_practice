@@ -16,6 +16,7 @@ import SectionCreatePage from "./pages/SectionCreatePage";
 import SectionEditPage from "./pages/SectionEditPage";
 import CardCreatePage from "./pages/CardCreatePage";
 import CardEditPage from "./pages/CardEditPage";
+import PublicOnlyRoute from "./components/PublicOnlyRoute";
 
 export default function App() {
     return (
@@ -26,19 +27,27 @@ export default function App() {
                         <Route index element={<HomePage />} />
                         <Route path="projects" element={<ProjectsPage />} />
                         <Route path="projects/:slug" element={<ProjectDetailPage />} />
-                        <Route path="login" element={<LoginPage />} />
-                        <Route path="*" element={<NotFoundPage />} />
+                        <Route element={<PublicOnlyRoute redirectTo="/sections" />}>
+                            <Route path="login" element={<LoginPage />} />
+                        </Route>
                         <Route path="projects/:slug/edit" element={<ProjectEditPage />} />
+
                         <Route element={<ProtectedRoute />}>
                             <Route path="sections" element={<SectionsPage />} />
-                            <Route path="sections/:slug" element={<SectionPage />} />
                             <Route path="sections/create" element={<SectionCreatePage />} />
-                            <Route path="cards/:slug" element={<CardPage />} />
+
                             <Route path="sections/:slug/edit" element={<SectionEditPage />} />
                             <Route path="sections/:slug/cards/create" element={<CardCreatePage />} />
+
+                            <Route path="sections/*" element={<SectionPage />} />
+
+                            <Route path="cards/:slug" element={<CardPage />} />
                             <Route path="cards/:slug/edit" element={<CardEditPage />} />
+
                             <Route path="projects/create" element={<ProjectCreatePage />} />
                         </Route>
+
+                        <Route path="*" element={<NotFoundPage />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

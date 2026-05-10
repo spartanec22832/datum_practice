@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { getProjectBySlug, updateProject } from "../services/projects";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 export default function ProjectEditPage() {
     const { slug } = useParams();
@@ -41,7 +43,12 @@ export default function ProjectEditPage() {
                 });
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить проект для редактирования.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043f\u0440\u043e\u0435\u043a\u0442 \u0434\u043b\u044f \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -119,7 +126,7 @@ export default function ProjectEditPage() {
             if (formData.geojson.trim()) {
                 try {
                     geojsonValue = JSON.parse(formData.geojson);
-                } catch (parseError) {
+                } catch {
                     setError("GeoJSON должен быть корректным JSON.");
                     setIsSaving(false);
                     return;
@@ -171,7 +178,12 @@ export default function ProjectEditPage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось сохранить изменения.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f."
+                )
+            );
         } finally {
             setIsSaving(false);
         }
@@ -225,11 +237,7 @@ export default function ProjectEditPage() {
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -239,6 +247,7 @@ export default function ProjectEditPage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">

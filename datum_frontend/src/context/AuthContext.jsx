@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
         try {
             setIsAuthLoading(true);
             const me = await getMe();
-            console.log("ME:", me);
             setUser(me);
         } catch (error) {
             console.error(error);
@@ -40,22 +39,31 @@ export function AuthProvider({ children }) {
         loadUser();
     }, []);
 
-    const value = useMemo(
-        () => ({
+    const value = useMemo(() => {
+        const isAdmin = Boolean(user?.is_staff || user?.role === "admin");
+
+        return {
             user,
             setUser,
             isAuthLoading,
             loadUser,
             logout,
             isAuthenticated: Boolean(user),
-            isAdmin: Boolean(user?.is_staff || user?.role === "admin"),
+            isAdmin,
             isUser: Boolean(user?.role === "user"),
-            canCreateKnowledge: Boolean(
-                user?.is_staff || user?.role === "admin" || user?.role === "user"
-            ),
-        }),
-        [user, isAuthLoading]
-    );
+            canCreateKnowledge: Boolean(isAdmin || user?.role === "user"),
+            canManageKnowledgeItem: (item) => {
+                if (!user || !item) {
+                    return false;
+                }
+
+                const authorId =
+                    typeof item.author === "object" ? item.author?.id : item.author;
+
+                return Boolean(isAdmin || Number(authorId) === Number(user.id));
+            },
+        };
+    }, [user, isAuthLoading]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

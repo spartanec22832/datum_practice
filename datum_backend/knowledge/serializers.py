@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
+import os
 
 from .models import Card, CardMedia, Section
 
@@ -13,12 +14,35 @@ class CardMediaSerializer(serializers.ModelSerializer):
             "id",
             "card",
             "file",
+            "original_filename",
             "media_type",
             "caption",
             "sort_order",
             "created_at",
         )
-        read_only_fields = ("id", "card", "media_type", "created_at")
+        read_only_fields = (
+            "id",
+            "card",
+            "original_filename",
+            "media_type",
+            "created_at",
+        )
+
+    def validate_file(self, value):
+        if not value:
+            return value
+
+        ext = os.path.splitext(value.name)[1].lower()
+        allowed_exts = set(CardMedia.get_allowed_extensions())
+
+        if ext not in allowed_exts:
+            suffix = ext or "\u0444\u0430\u0439\u043b \u0431\u0435\u0437 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043d\u0438\u044f"
+            raise serializers.ValidationError(
+                f"\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: {suffix}."
+            )
+
+        return value
+
 
 class CardReadSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username", read_only=True)
@@ -86,6 +110,28 @@ class CardWriteSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        section = attrs.get(
+            "section",
+            self.instance.section if self.instance else None,
+        )
+
+        is_published = attrs.get(
+            "is_published",
+            self.instance.is_published if self.instance else False,
+        )
+
+        if is_published and section and not section.is_published:
+            raise serializers.ValidationError(
+                {
+                    "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0440\u0430\u0437\u0434\u0435\u043b\u0435."
+                }
+            )
+
+        return attrs
+
 
 class SectionSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username", read_only=True)
@@ -110,7 +156,14 @@ class SectionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "slug", "author", "author_username", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "slug",
+            "author",
+            "author_username",
+            "created_at",
+            "updated_at",
+        )
 
     def get_children_count(self, obj) -> int:
         return obj.children.count()
@@ -120,11 +173,55 @@ class SectionSerializer(serializers.ModelSerializer):
 
     def validate_is_system(self, value):
         request = self.context.get("request")
+
         if request and request.user.is_authenticated and request.user.is_staff:
             return value
+
         if "is_system" in getattr(self, "initial_data", {}):
-            raise serializers.ValidationError("Only admin can manage system sections.")
+            raise serializers.ValidationError(
+                "\u0422\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440 \u043c\u043e\u0436\u0435\u0442 \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u0442\u044c \u0441\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u043c\u0438 \u0440\u0430\u0437\u0434\u0435\u043b\u0430\u043c\u0438."
+            )
+
         return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        parent = attrs.get(
+            "parent",
+            self.instance.parent if self.instance else None,
+        )
+
+        is_published = attrs.get(
+            "is_published",
+            self.instance.is_published if self.instance else False,
+        )
+
+        if self.instance and parent:
+            if parent.pk == self.instance.pk:
+                raise serializers.ValidationError(
+                    {
+                        "parent": "\u0420\u0430\u0437\u0434\u0435\u043b \u043d\u0435 \u043c\u043e\u0436\u0435\u0442 \u0431\u044b\u0442\u044c \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u0435\u043c \u0441\u0430\u043c \u0434\u043b\u044f \u0441\u0435\u0431\u044f."
+                    }
+                )
+
+            descendant_ids = self.instance.get_descendant_ids()
+
+            if parent.pk in descendant_ids:
+                raise serializers.ValidationError(
+                    {
+                        "parent": "\u041d\u0435\u043b\u044c\u0437\u044f \u0432\u044b\u0431\u0440\u0430\u0442\u044c \u0434\u043e\u0447\u0435\u0440\u043d\u0438\u0439 \u0440\u0430\u0437\u0434\u0435\u043b \u0432 \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0435 \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0433\u043e."
+                    }
+                )
+
+        if is_published and parent and not parent.is_published:
+            raise serializers.ValidationError(
+                {
+                    "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b \u0432\u043d\u0443\u0442\u0440\u0438 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u0433\u043e \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0433\u043e \u0440\u0430\u0437\u0434\u0435\u043b\u0430."
+                }
+            )
+
+        return attrs
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -150,7 +247,36 @@ class CardSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "author", "author_username", "section_slug", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "author",
+            "author_username",
+            "section_slug",
+            "created_at",
+            "updated_at",
+        )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        section = attrs.get(
+            "section",
+            self.instance.section if self.instance else None,
+        )
+
+        is_published = attrs.get(
+            "is_published",
+            self.instance.is_published if self.instance else False,
+        )
+
+        if is_published and section and not section.is_published:
+            raise serializers.ValidationError(
+                {
+                    "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0440\u0430\u0437\u0434\u0435\u043b\u0435."
+                }
+            )
+
+        return attrs
 
 
 class SectionContentSerializer(SectionSerializer):
@@ -163,19 +289,25 @@ class SectionContentSerializer(SectionSerializer):
     def _filter_sections(self, queryset):
         request = self.context["request"]
         user = request.user
+
         if user.is_authenticated and user.is_staff:
             return queryset
+
         if user.is_authenticated:
             return (queryset.filter(is_published=True) | queryset.filter(author=user)).distinct()
+
         return queryset.filter(is_published=True)
 
     def _filter_cards(self, queryset):
         request = self.context["request"]
         user = request.user
+
         if user.is_authenticated and user.is_staff:
             return queryset
+
         if user.is_authenticated:
             return (queryset.filter(is_published=True) | queryset.filter(author=user)).distinct()
+
         return queryset.filter(is_published=True)
 
     @extend_schema_field(SectionSerializer(many=True))

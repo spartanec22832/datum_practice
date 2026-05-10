@@ -1,6 +1,8 @@
 # Datum Backend
 
-Backend-часть веб-платформы для внутреннего банка знаний компании.
+Backend-часть веб-платформы для внутреннего банка знаний компании
+
+---
 
 ## Стек
 - Django
@@ -9,16 +11,17 @@ Backend-часть веб-платформы для внутреннего ба�
 - Simple JWT
 
 ## Требования
-- Python 3.11+
+- Python 3.12+
 - PostgreSQL
-- pip
 
-## Установка и запуск
+---
+
+## Локальные установка и запуск
 
 ### 1. Клонировать репозиторий
 ```bash
 git clone <repo_url>
-cd datum_backend
+cd datum_practice/datum_backend
 ```
 ### 2. Создать и активировать виртуальное окружение
 ```bash
@@ -29,7 +32,7 @@ venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
-### 4. Создать файл `env` на основе `env.example`
+### 4. Создать файл `.env` на основе `.env.example`
 
 ### 5. Создать локальную БД PostgreSQL
 Например:
@@ -37,11 +40,23 @@ pip install -r requirements.txt
 CREATE DATABASE datum_db
 ```
 ### 6. Применить миграции, создать админа, запустить сервер
+
+При необходимости пересоздать миграции:
+
 ```bash
 python manage.py makemigrations
+```
+Выполнить миграции, создать суперпользователя, запустить сервер локально
+```bash
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
+```
+
+Для запуска тестов используйте: 
+
+```bash
+python manage.py test
 ```
 
 После запуска проект будет доступен по адресу:
@@ -55,4 +70,3 @@ http://127.0.0.1:8000/api/docs/swagger/
 
 Redoc:
 http://127.0.0.1:8000/api/docs/redoc/
-

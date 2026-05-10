@@ -1,13 +1,16 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from slugify import slugify
 import os
 import uuid
 import re
+import shutil
+
 
 def normalize_title(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "").strip())
+
 
 def build_transliterated_slug(value: str, fallback: str) -> str:
     return slugify(value or "", lowercase=True, separator="-", max_length=200) or fallback
@@ -70,14 +73,75 @@ class Section(models.Model):
 
     def clean(self):
         if self.parent_id and self.parent_id == self.pk:
-            raise ValidationError({"parent": "Section cannot be its own parent."})
+            raise ValidationError({
+                "parent": "Раздел не может быть родителем сам для себя."
+            })
+
+        if self.pk and self.parent_id:
+            descendant_ids = self.get_descendant_ids()
+
+            if self.parent_id in descendant_ids:
+                raise ValidationError({
+                    "parent": "Нельзя выбрать дочерний раздел в качестве родительского."
+                })
+
+        if self.is_published and self.parent_id and self.parent and not self.parent.is_published:
+            raise ValidationError({
+                "is_published": "Нельзя публиковать раздел внутри неопубликованного родительского раздела."
+            })
+
+    def get_descendant_ids(self):
+        descendant_ids = []
+        stack = list(self.children.values_list("id", flat=True))
+
+        while stack:
+            current_id = stack.pop()
+            descendant_ids.append(current_id)
+
+            child_ids = Section.objects.filter(parent_id=current_id).values_list("id", flat=True)
+            stack.extend(child_ids)
+
+        return descendant_ids
+
+    @transaction.atomic
+    def unpublish_descendants_and_cards(self):
+        descendant_ids = self.get_descendant_ids()
+        section_ids = [self.id, *descendant_ids]
+
+        Section.objects.filter(id__in=descendant_ids).update(is_published=False)
+        Card.objects.filter(section_id__in=section_ids).update(is_published=False)
 
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
+
+        title_changed = False
+        was_published = None
+
+        if self.pk:
+            old_instance = Section.objects.filter(pk=self.pk).only(
+                "title",
+                "is_published",
+            ).first()
+
+            if old_instance:
+                was_published = old_instance.is_published
+
+                if normalize_title(old_instance.title) != self.title:
+                    title_changed = True
+
+        if not self.slug or title_changed:
+            self.slug = generate_unique_slug(
+                Section,
+                self.title,
+                self.pk,
+                fallback="section",
+            )
+
         self.full_clean()
-        if not self.slug:
-            self.slug = generate_unique_slug(Section, self.title, self.pk, fallback="section")
         super().save(*args, **kwargs)
+
+        if was_published is True and self.is_published is False:
+            self.unpublish_descendants_and_cards()
 
     def __str__(self):
         return self.title
@@ -112,19 +176,38 @@ class Card(models.Model):
         db_table = "cards"
         ordering = ("title",)
 
+    def clean(self):
+        if self.is_published and self.section_id and self.section and not self.section.is_published:
+            raise ValidationError({
+                "is_published": "\u041d\u0435\u043b\u044c\u0437\u044f \u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0432 \u043d\u0435\u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043d\u043e\u043c \u0440\u0430\u0437\u0434\u0435\u043b\u0435."
+            })
+
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
+
         old_image = None
+        title_changed = False
+
         if self.pk:
             try:
                 old_instance = Card.objects.get(pk=self.pk)
                 old_image = old_instance.main_image
+
+                if normalize_title(old_instance.title) != self.title:
+                    title_changed = True
+
             except Card.DoesNotExist:
                 old_image = None
 
-        if not self.slug:
-            self.slug = generate_unique_slug(Card, self.title, self.pk, fallback="card")
+        if not self.slug or title_changed:
+            self.slug = generate_unique_slug(
+                Card,
+                self.title,
+                self.pk,
+                fallback="card",
+            )
 
+        self.full_clean()
         super().save(*args, **kwargs)
 
         old_name = old_image.name if old_image else ""
@@ -136,9 +219,24 @@ class Card(models.Model):
 
     def delete(self, *args, **kwargs):
         image = self.main_image
+
+        attachments_dir = os.path.join(
+            settings.MEDIA_ROOT,
+            "cards",
+            "attachments",
+            str(self.id),
+        )
+
+        for media_item in self.media_items.all():
+            media_item.delete()
+
         super().delete(*args, **kwargs)
+
         if image and image.name and image.storage.exists(image.name):
             image.storage.delete(image.name)
+
+        if os.path.isdir(attachments_dir):
+            shutil.rmtree(attachments_dir, ignore_errors=True)
 
     def __str__(self):
         return self.title
@@ -149,6 +247,7 @@ class CardMedia(models.Model):
     VIDEO = "video"
     AUDIO = "audio"
     DOCUMENT = "document"
+    original_filename = models.CharField(max_length=255, blank=True)
 
     MEDIA_TYPE_CHOICES = (
         (IMAGE, "Image"),
@@ -160,7 +259,95 @@ class CardMedia(models.Model):
     IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
     VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
     AUDIO_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
-    DOCUMENT_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt", ".xlsx", ".pptx"}
+    DOCUMENT_EXTENSIONS = {
+        # documents
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".txt",
+        ".rtf",
+        ".md",
+        ".markdown",
+
+        # tables / presentations
+        ".xls",
+        ".xlsx",
+        ".csv",
+        ".tsv",
+        ".ppt",
+        ".pptx",
+
+        # code
+        ".py",
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".html",
+        ".css",
+        ".scss",
+        ".sass",
+        ".json",
+        ".xml",
+        ".yaml",
+        ".yml",
+        ".toml",
+        ".ini",
+        ".env",
+        ".sh",
+        ".bash",
+        ".bat",
+        ".ps1",
+        ".sql",
+        ".java",
+        ".kt",
+        ".kts",
+        ".c",
+        ".h",
+        ".cpp",
+        ".hpp",
+        ".cs",
+        ".go",
+        ".rs",
+        ".php",
+        ".rb",
+        ".swift",
+        ".dart",
+        ".vue",
+        ".svelte",
+
+        # config / project files
+        ".gitignore",
+        ".dockerignore",
+        ".editorconfig",
+        ".lock",
+        ".log",
+
+        # archives
+        ".zip",
+        ".rar",
+        ".7z",
+        ".tar",
+        ".gz",
+    }
+
+    @classmethod
+    def get_allowed_extensions_by_type(cls):
+        return {
+            cls.IMAGE: sorted(cls.IMAGE_EXTENSIONS),
+            cls.VIDEO: sorted(cls.VIDEO_EXTENSIONS),
+            cls.AUDIO: sorted(cls.AUDIO_EXTENSIONS),
+            cls.DOCUMENT: sorted(cls.DOCUMENT_EXTENSIONS),
+        }
+
+    @classmethod
+    def get_allowed_extensions(cls):
+        extensions_by_type = cls.get_allowed_extensions_by_type()
+        return sorted({
+            extension
+            for extensions in extensions_by_type.values()
+            for extension in extensions
+        })
 
     card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name="media_items")
     file = models.FileField(
@@ -170,7 +357,7 @@ class CardMedia(models.Model):
         null=True,
     )
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPE_CHOICES, blank=True)
-    caption = models.CharField(max_length=255, blank=True)
+    caption = models.CharField(max_length=30, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -181,36 +368,42 @@ class CardMedia(models.Model):
     def detect_media_type(self):
         if not self.file:
             return ""
+
         ext = os.path.splitext(self.file.name)[1].lower()
+
         if ext in self.IMAGE_EXTENSIONS:
             return self.IMAGE
         if ext in self.VIDEO_EXTENSIONS:
             return self.VIDEO
         if ext in self.AUDIO_EXTENSIONS:
             return self.AUDIO
+
         return self.DOCUMENT
 
     def clean(self):
         super().clean()
+
         if self.file:
             ext = os.path.splitext(self.file.name)[1].lower()
-            allowed_exts = (
-                self.IMAGE_EXTENSIONS
-                | self.VIDEO_EXTENSIONS
-                | self.AUDIO_EXTENSIONS
-                | self.DOCUMENT_EXTENSIONS
-            )
+            allowed_exts = set(self.get_allowed_extensions())
+
             if ext not in allowed_exts:
-                raise ValidationError({"file": f"Unsupported file type: {ext}"})
+                raise ValidationError({
+                    "file": f"\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: {ext}"
+                })
 
     def save(self, *args, **kwargs):
         old_file = None
+
         if self.pk:
             try:
                 old_instance = CardMedia.objects.get(pk=self.pk)
                 old_file = old_instance.file
             except CardMedia.DoesNotExist:
                 old_file = None
+
+        if self.file and not self.original_filename:
+            self.original_filename = os.path.basename(self.file.name)
 
         if self.file and not self.media_type:
             self.media_type = self.detect_media_type()
@@ -230,6 +423,7 @@ class CardMedia(models.Model):
     def delete(self, *args, **kwargs):
         file_obj = self.file
         super().delete(*args, **kwargs)
+
         if file_obj and file_obj.name and file_obj.storage.exists(file_obj.name):
             file_obj.storage.delete(file_obj.name)
 

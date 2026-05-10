@@ -1,4 +1,5 @@
 import re
+import os
 from django.conf import settings
 from django.db import models
 from slugify import slugify
@@ -37,7 +38,7 @@ class Project(models.Model):
     )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
-    short_description = models.TextField()
+    short_description = models.CharField(max_length=200)
     full_description = models.TextField(blank=True)
     geojson = models.JSONField(blank=True, null=True)
     main_image = models.ImageField(upload_to="projects/main/", blank=True, null=True)
@@ -51,9 +52,48 @@ class Project(models.Model):
 
     def save(self, *args, **kwargs):
         self.title = normalize_title(self.title)
-        if not self.slug:
-            self.slug = generate_unique_slug(Project, self.title, self.pk, fallback="project")
+        title_changed = False
+        if self.pk:
+            old_instance = Project.objects.filter(pk=self.pk).only("title").first()
+            if old_instance and normalize_title(old_instance.title) != self.title:
+                title_changed = True
+        if not self.slug or title_changed:
+            self.slug = generate_unique_slug(
+                Project,
+                self.title,
+                self.pk,
+                fallback="project",
+            )
+
+        self.delete_old_main_image_if_changed()
         super().save(*args, **kwargs)
+
+    def delete_old_main_image_if_changed(self):
+        if not self.pk:
+            return
+
+        old_instance = Project.objects.filter(pk=self.pk).only("main_image").first()
+
+        if not old_instance:
+            return
+
+        old_image = old_instance.main_image
+        new_image = self.main_image
+
+        if old_image and old_image != new_image:
+            old_image_path = old_image.path
+
+            if os.path.isfile(old_image_path):
+                os.remove(old_image_path)
+
+    def delete(self, *args, **kwargs):
+        main_image = self.main_image
+        main_image_path = main_image.path if main_image else None
+
+        super().delete(*args, **kwargs)
+
+        if main_image_path and os.path.isfile(main_image_path):
+            os.remove(main_image_path)
 
     def __str__(self):
         return self.title

@@ -1,48 +1,37 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { createCard, createCardMedia } from "../services/cards";
+import ErrorAlertStack from "../components/ErrorAlertStack";
+import {
+    createCard,
+    createCardMedia,
+    getCardMediaAllowedExtensions,
+} from "../services/cards";
 import { getSectionBySlug } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
-function getMediaType(fileName) {
-    const lowerName = fileName.toLowerCase();
+function getFileExtension(fileName) {
+    const dotIndex = fileName.lastIndexOf(".");
+    return dotIndex === -1 ? "" : fileName.slice(dotIndex).toLowerCase();
+}
 
-    if (
-        lowerName.endsWith(".jpg") ||
-        lowerName.endsWith(".jpeg") ||
-        lowerName.endsWith(".png") ||
-        lowerName.endsWith(".gif") ||
-        lowerName.endsWith(".webp")
-    ) {
-        return "image";
+function isSupportedAttachment(file, allowedExtensions) {
+    if (!allowedExtensions) {
+        return true;
     }
 
-    if (
-        lowerName.endsWith(".mp4") ||
-        lowerName.endsWith(".mov") ||
-        lowerName.endsWith(".avi") ||
-        lowerName.endsWith(".mkv") ||
-        lowerName.endsWith(".webm")
-    ) {
-        return "video";
-    }
+    return allowedExtensions.has(getFileExtension(file.name));
+}
 
-    if (
-        lowerName.endsWith(".mp3") ||
-        lowerName.endsWith(".wav") ||
-        lowerName.endsWith(".ogg") ||
-        lowerName.endsWith(".m4a")
-    ) {
-        return "audio";
-    }
-
-    return "document";
+function getUnsupportedAttachmentMessage(files) {
+    const names = files.map((file) => file.name).join(", ");
+    return `\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: ${names}.`;
 }
 
 export default function CardCreatePage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
+    const {canCreateKnowledge, isAuthLoading } = useAuth();
 
     const [section, setSection] = useState(null);
     const [formData, setFormData] = useState({
@@ -57,6 +46,8 @@ export default function CardCreatePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
+    const [attachmentError, setAttachmentError] = useState("");
+    const [allowedAttachmentExtensions, setAllowedAttachmentExtensions] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
 
     useEffect(() => {
@@ -69,7 +60,12 @@ export default function CardCreatePage() {
                 setSection(data);
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить секцию для создания карточки.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b \u0434\u043b\u044f \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u044f \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -77,6 +73,26 @@ export default function CardCreatePage() {
 
         loadSection();
     }, [slug]);
+
+    useEffect(() => {
+        async function loadAllowedExtensions() {
+            try {
+                const data = await getCardMediaAllowedExtensions();
+                const extensions = Array.isArray(data.extensions)
+                    ? data.extensions
+                    : [];
+
+                setAllowedAttachmentExtensions(new Set(extensions));
+            } catch (err) {
+                console.error(err);
+                setAllowedAttachmentExtensions(null);
+            }
+        }
+
+        loadAllowedExtensions();
+    }, []);
+
+    const isSectionDraft = Boolean(section && !section.is_published);
 
     function handleChange(event) {
         const { name, value, type, checked, files } = event.target;
@@ -99,10 +115,27 @@ export default function CardCreatePage() {
             return;
         }
 
-        const newItems = files.map((file, index) => ({
+        const unsupportedFiles = files.filter(
+            (file) => !isSupportedAttachment(file, allowedAttachmentExtensions)
+        );
+        const supportedFiles = files.filter((file) =>
+            isSupportedAttachment(file, allowedAttachmentExtensions)
+        );
+
+        if (unsupportedFiles.length > 0) {
+            setAttachmentError(getUnsupportedAttachmentMessage(unsupportedFiles));
+        } else {
+            setAttachmentError("");
+        }
+
+        if (supportedFiles.length === 0) {
+            event.target.value = "";
+            return;
+        }
+
+        const newItems = supportedFiles.map((file) => ({
             file,
             caption: "",
-            sort_order: attachments.length + index,
         }));
 
         setAttachments((prev) => [...prev, ...newItems]);
@@ -115,7 +148,7 @@ export default function CardCreatePage() {
                 itemIndex === index
                     ? {
                         ...item,
-                        [field]: field === "sort_order" ? Number(value) || 0 : value,
+                        [field]: value,
                     }
                     : item
             )
@@ -136,13 +169,14 @@ export default function CardCreatePage() {
         try {
             setIsSaving(true);
             setError("");
+            setAttachmentError("");
             setSuccessMessage("");
 
             const cardPayload = new FormData();
             cardPayload.append("title", formData.title);
             cardPayload.append("summary", formData.summary);
             cardPayload.append("content", formData.content);
-            cardPayload.append("is_published", isAdmin ? String(formData.is_published) : "true");
+            cardPayload.append("is_published", String(isSectionDraft ? false : formData.is_published));
             cardPayload.append("section", section.id);
 
             if (formData.main_image) {
@@ -151,13 +185,11 @@ export default function CardCreatePage() {
 
             const createdCard = await createCard(cardPayload, true);
 
-            for (const item of attachments) {
+            for (const [index, item] of attachments.entries()) {
                 const mediaPayload = new FormData();
                 mediaPayload.append("file", item.file);
                 mediaPayload.append("caption", item.caption);
-                mediaPayload.append("sort_order", item.sort_order);
-                mediaPayload.append("media_type", getMediaType(item.file.name));
-
+                mediaPayload.append("sort_order", index);
                 await createCardMedia(createdCard.id, mediaPayload);
             }
 
@@ -168,7 +200,19 @@ export default function CardCreatePage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось создать карточку.");
+            const messages = getApiErrorMessages(
+                err,
+                "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
+            );
+            const isAttachmentError = messages.some((message) =>
+                message.includes("\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430")
+            );
+
+            if (isAttachmentError) {
+                setAttachmentError(messages);
+            } else {
+                setError(messages);
+            }
         } finally {
             setIsSaving(false);
         }
@@ -224,11 +268,7 @@ export default function CardCreatePage() {
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -238,6 +278,7 @@ export default function CardCreatePage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">
@@ -331,6 +372,11 @@ export default function CardCreatePage() {
                         </p>
                     </div>
 
+                    <ErrorAlertStack
+                        error={attachmentError}
+                        itemClassName="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+                    />
+
                     {attachments.length > 0 && (
                         <div className="space-y-4">
                             {attachments.map((item, index) => (
@@ -361,24 +407,6 @@ export default function CardCreatePage() {
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                                Порядок
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={item.sort_order}
-                                                onChange={(event) =>
-                                                    handleAttachmentFieldChange(
-                                                        index,
-                                                        "sort_order",
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                                            />
-                                        </div>
-
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveAttachment(index)}
@@ -393,17 +421,30 @@ export default function CardCreatePage() {
                     )}
                 </div>
 
-                {isAdmin && (
+                <div className="space-y-2">
                     <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
                         <input
                             type="checkbox"
                             name="is_published"
-                            checked={formData.is_published}
+                            checked={isSectionDraft ? false : formData.is_published}
                             onChange={handleChange}
+                            disabled={isSectionDraft}
                         />
-                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                            Опубликовать сразу
+                        </span>
                     </label>
-                )}
+
+                    {isSectionDraft ? (
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            Эта секция не опубликована, поэтому новая карточка будет сохранена как черновик.
+                        </p>
+                    ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Если снять галочку, карточка сохранится как черновик и будет видна вам и администратору.
+                        </p>
+                    )}
+                </div>
 
                 <div className="flex gap-3">
                     <button

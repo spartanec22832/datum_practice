@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { createSection, getSections } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 export default function SectionCreatePage() {
     const navigate = useNavigate();
-    const { isAdmin, canCreateKnowledge, isAuthLoading } = useAuth();
+    const [searchParams] = useSearchParams();
+    const {canCreateKnowledge, isAuthLoading } = useAuth();
+
+    const parentFromQuery = searchParams.get("parent") || "";
+    const parentPathFromQuery = searchParams.get("parentPath") || "";
 
     const [sections, setSections] = useState([]);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        parent: "",
+        parent: parentFromQuery,
         is_published: true,
     });
 
@@ -47,6 +53,29 @@ export default function SectionCreatePage() {
         return sections;
     }, [sections]);
 
+    const selectedParentSection = useMemo(() => {
+        if (!formData.parent) {
+            return null;
+        }
+
+        return sections.find(
+            (section) => Number(section.id) === Number(formData.parent)
+        ) || null;
+    }, [sections, formData.parent]);
+
+    const isParentSectionDraft = Boolean(
+        selectedParentSection && !selectedParentSection.is_published
+    );
+
+    useEffect(() => {
+        if (isParentSectionDraft && formData.is_published) {
+            setFormData((prev) => ({
+                ...prev,
+                is_published: false,
+            }));
+        }
+    }, [isParentSectionDraft, formData.is_published]);
+
     function handleChange(event) {
         const { name, value, type, checked } = event.target;
 
@@ -67,7 +96,7 @@ export default function SectionCreatePage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: isAdmin ? formData.is_published : true,
+                is_published: isParentSectionDraft ? false : formData.is_published,
             };
 
             if (formData.parent) {
@@ -79,11 +108,21 @@ export default function SectionCreatePage() {
             setSuccessMessage("Секция успешно создана.");
 
             setTimeout(() => {
+                if (parentPathFromQuery) {
+                    navigate(`/sections/${parentPathFromQuery}/${created.slug}`);
+                    return;
+                }
+
                 navigate(`/sections/${created.slug}`);
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось создать секцию.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b."
+                )
+            );
         } finally {
             setIsSaving(false);
         }
@@ -124,11 +163,7 @@ export default function SectionCreatePage() {
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -138,6 +173,7 @@ export default function SectionCreatePage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">
@@ -198,17 +234,30 @@ export default function SectionCreatePage() {
                     </select>
                 </div>
 
-                {isAdmin && (
+                <div className="space-y-2">
                     <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
                         <input
                             type="checkbox"
                             name="is_published"
                             checked={formData.is_published}
                             onChange={handleChange}
+                            disabled={isParentSectionDraft}
                         />
-                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                            Опубликовать сразу
+                        </span>
                     </label>
-                )}
+
+                    {isParentSectionDraft ? (
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            Родительская секция не опубликована, поэтому новая подсекция будет сохранена как черновик.
+                        </p>
+                    ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Если снять галочку, секция сохранится как черновик и будет видна вам и администратору.
+                        </p>
+                    )}
+                </div>
 
                 <div className="flex gap-3">
                     <button

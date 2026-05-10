@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createProject } from "../services/projects";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { useAuth } from "../context/AuthContext";
+import { createProject } from "../services/projects";
+import { getApiErrorMessages } from "../utils/apiError";
 
 export default function ProjectCreatePage() {
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin" || user?.is_staff;
 
     const [formData, setFormData] = useState({
         title: "",
@@ -85,7 +88,7 @@ export default function ProjectCreatePage() {
             if (formData.geojson.trim()) {
                 try {
                     geojsonValue = JSON.parse(formData.geojson);
-                } catch (error) {
+                } catch {
                     setError("GeoJSON должен быть корректным JSON.");
                     setIsSaving(false);
                     return;
@@ -135,10 +138,40 @@ export default function ProjectCreatePage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось создать проект.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u0440\u043e\u0435\u043a\u0442."
+                )
+            );
         } finally {
             setIsSaving(false);
         }
+    }
+
+    if (!isAdmin) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <Link to="/projects" className="transition hover:text-slate-700 dark:text-slate-200">
+                        Проекты
+                    </Link>
+                    <span>/</span>
+                    <span className="text-slate-500 dark:text-slate-400">Создание</span>
+                </div>
+
+                <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700 shadow-sm dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                    У вас нет прав для создания проектов.
+                </div>
+
+                <Link
+                    to="/projects"
+                    className="inline-flex rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                    Вернуться к проектам
+                </Link>
+            </div>
+        );
     }
 
     return (
@@ -160,11 +193,7 @@ export default function ProjectCreatePage() {
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -174,6 +203,7 @@ export default function ProjectCreatePage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">

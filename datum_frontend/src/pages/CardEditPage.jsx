@@ -3,44 +3,38 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     createCardMedia,
     deleteCardMedia,
+    getCardMediaAllowedExtensions,
     getCardBySlug,
     updateCard,
+    updateCardMedia,
 } from "../services/cards";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
-function getMediaType(fileName) {
-    const lowerName = fileName.toLowerCase();
 
-    if (
-        lowerName.endsWith(".jpg") ||
-        lowerName.endsWith(".jpeg") ||
-        lowerName.endsWith(".png") ||
-        lowerName.endsWith(".gif") ||
-        lowerName.endsWith(".webp")
-    ) {
-        return "image";
+function getFileExtension(fileName) {
+    const dotIndex = fileName.lastIndexOf(".");
+    return dotIndex === -1 ? "" : fileName.slice(dotIndex).toLowerCase();
+}
+
+function isSupportedAttachment(file, allowedExtensions) {
+    if (!allowedExtensions) {
+        return true;
     }
 
-    if (
-        lowerName.endsWith(".mp4") ||
-        lowerName.endsWith(".mov") ||
-        lowerName.endsWith(".avi") ||
-        lowerName.endsWith(".mkv") ||
-        lowerName.endsWith(".webm")
-    ) {
-        return "video";
-    }
+    return allowedExtensions.has(getFileExtension(file.name));
+}
 
-    if (
-        lowerName.endsWith(".mp3") ||
-        lowerName.endsWith(".wav") ||
-        lowerName.endsWith(".ogg") ||
-        lowerName.endsWith(".m4a")
-    ) {
-        return "audio";
-    }
+function getUnsupportedAttachmentMessage(files) {
+    const names = files.map((file) => file.name).join(", ");
+    return `\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430: ${names}.`;
+}
 
-    return "document";
+function getAttachmentCaptions(mediaItems) {
+    return Object.fromEntries(
+        (mediaItems || []).map((item) => [item.id, item.caption || ""])
+    );
 }
 
 function getFileUrl(filePath) {
@@ -71,7 +65,7 @@ function getFileName(filePath) {
 export default function CardEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const {isAuthLoading, canManageKnowledgeItem } = useAuth();
 
     const [card, setCard] = useState(null);
     const [formData, setFormData] = useState({
@@ -86,7 +80,11 @@ export default function CardEditPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
+    const [attachmentError, setAttachmentError] = useState("");
+    const [allowedAttachmentExtensions, setAllowedAttachmentExtensions] = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
+    const [existingAttachmentCaptions, setExistingAttachmentCaptions] = useState({});
+
 
     useEffect(() => {
         async function loadCard() {
@@ -103,9 +101,17 @@ export default function CardEditPage() {
                     is_published: Boolean(data.is_published),
                     main_image: null,
                 });
+                setExistingAttachmentCaptions(
+                    getAttachmentCaptions(data.media_items)
+                );
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить карточку для редактирования.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 \u0434\u043b\u044f \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -113,6 +119,24 @@ export default function CardEditPage() {
 
         loadCard();
     }, [slug]);
+
+    useEffect(() => {
+        async function loadAllowedExtensions() {
+            try {
+                const data = await getCardMediaAllowedExtensions();
+                const extensions = Array.isArray(data.extensions)
+                    ? data.extensions
+                    : [];
+
+                setAllowedAttachmentExtensions(new Set(extensions));
+            } catch (err) {
+                console.error(err);
+                setAllowedAttachmentExtensions(null);
+            }
+        }
+
+        loadAllowedExtensions();
+    }, []);
 
     function handleChange(event) {
         const { name, value, type, checked, files } = event.target;
@@ -135,12 +159,27 @@ export default function CardEditPage() {
             return;
         }
 
-        const startOrder = newAttachments.length;
+        const unsupportedFiles = files.filter(
+            (file) => !isSupportedAttachment(file, allowedAttachmentExtensions)
+        );
+        const supportedFiles = files.filter((file) =>
+            isSupportedAttachment(file, allowedAttachmentExtensions)
+        );
 
-        const items = files.map((file, index) => ({
+        if (unsupportedFiles.length > 0) {
+            setAttachmentError(getUnsupportedAttachmentMessage(unsupportedFiles));
+        } else {
+            setAttachmentError("");
+        }
+
+        if (supportedFiles.length === 0) {
+            event.target.value = "";
+            return;
+        }
+
+        const items = supportedFiles.map((file) => ({
             file,
             caption: "",
-            sort_order: startOrder + index,
         }));
 
         setNewAttachments((prev) => [...prev, ...items]);
@@ -153,7 +192,7 @@ export default function CardEditPage() {
                 itemIndex === index
                     ? {
                         ...item,
-                        [field]: field === "sort_order" ? Number(value) || 0 : value,
+                        [field]: value,
                     }
                     : item
             )
@@ -161,7 +200,16 @@ export default function CardEditPage() {
     }
 
     function handleRemoveNewAttachment(index) {
-        setNewAttachments((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+        setNewAttachments((prev) =>
+            prev.filter((_, itemIndex) => itemIndex !== index)
+        );
+    }
+
+    function handleExistingAttachmentCaptionChange(mediaId, value) {
+        setExistingAttachmentCaptions((prev) => ({
+            ...prev,
+            [mediaId]: value,
+        }));
     }
 
     async function handleDeleteExistingAttachment(mediaId) {
@@ -181,9 +229,36 @@ export default function CardEditPage() {
                         : [],
                 };
             });
+            setExistingAttachmentCaptions((prev) => {
+                const next = { ...prev };
+                delete next[mediaId];
+                return next;
+            });
         } catch (err) {
             console.error(err);
-            setError("Не удалось удалить вложение карточки.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438."
+                )
+            );
+        }
+    }
+
+    async function saveExistingAttachmentCaptions() {
+        const mediaItems = Array.isArray(card?.media_items) ? card.media_items : [];
+
+        for (const item of mediaItems) {
+            const caption = existingAttachmentCaptions[item.id] || "";
+
+            if (caption === (item.caption || "")) {
+                continue;
+            }
+
+            const payload = new FormData();
+            payload.append("caption", caption);
+
+            await updateCardMedia(item.id, payload);
         }
     }
 
@@ -197,6 +272,7 @@ export default function CardEditPage() {
         try {
             setIsSaving(true);
             setError("");
+            setAttachmentError("");
             setSuccessMessage("");
 
             let updatedCard = null;
@@ -215,7 +291,8 @@ export default function CardEditPage() {
                 payload.append("title", formData.title);
                 payload.append("summary", formData.summary);
                 payload.append("content", formData.content);
-                payload.append("is_published", formData.is_published);
+
+                payload.append("is_published", String(formData.is_published));
 
                 if (formData.main_image) {
                     payload.append("main_image", formData.main_image);
@@ -224,13 +301,17 @@ export default function CardEditPage() {
                 updatedCard = await updateCard(card.id, payload, true);
             }
 
-            for (const item of newAttachments) {
+            await saveExistingAttachmentCaptions();
+
+            const existingAttachmentsCount = Array.isArray(card.media_items)
+                ? card.media_items.length
+                : 0;
+
+            for (const [index, item] of newAttachments.entries()) {
                 const mediaPayload = new FormData();
                 mediaPayload.append("file", item.file);
                 mediaPayload.append("caption", item.caption);
-                mediaPayload.append("sort_order", item.sort_order);
-                mediaPayload.append("media_type", getMediaType(item.file.name));
-
+                mediaPayload.append("sort_order", existingAttachmentsCount + index);
                 await createCardMedia(updatedCard.id, mediaPayload);
             }
 
@@ -242,6 +323,9 @@ export default function CardEditPage() {
                 main_image: null,
             }));
             setNewAttachments([]);
+            setExistingAttachmentCaptions(
+                getAttachmentCaptions(freshCard.media_items)
+            );
             setSuccessMessage("Карточка успешно обновлена.");
 
             setTimeout(() => {
@@ -249,7 +333,19 @@ export default function CardEditPage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось сохранить изменения карточки.");
+            const messages = getApiErrorMessages(
+                err,
+                "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0438."
+            );
+            const isAttachmentError = messages.some((message) =>
+                message.includes("\u041d\u0435\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u043c\u044b\u0439 \u0442\u0438\u043f \u0444\u0430\u0439\u043b\u0430")
+            );
+
+            if (isAttachmentError) {
+                setAttachmentError(messages);
+            } else {
+                setError(messages);
+            }
         } finally {
             setIsSaving(false);
         }
@@ -284,7 +380,7 @@ export default function CardEditPage() {
         );
     }
 
-    if (!isAdmin) {
+    if (!canManageKnowledgeItem(card)) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для редактирования карточек.
@@ -303,7 +399,10 @@ export default function CardEditPage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                <Link
+                    to="/sections"
+                    className="transition hover:text-slate-700 dark:text-slate-200"
+                >
                     Справочник
                 </Link>
 
@@ -327,7 +426,9 @@ export default function CardEditPage() {
                     {card.title}
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500 dark:text-slate-400">Редактирование</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                    Редактирование
+                </span>
             </div>
 
             <section className="space-y-3">
@@ -335,15 +436,11 @@ export default function CardEditPage() {
                     Редактирование карточки
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    Здесь администратор может изменить содержимое карточки и управлять её вложениями.
+                    Здесь можно изменить содержимое карточки и управлять её вложениями.
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -353,6 +450,7 @@ export default function CardEditPage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-8 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <section className="space-y-6">
@@ -427,13 +525,14 @@ export default function CardEditPage() {
 
                         {card?.main_image && (
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Текущее изображение уже загружено. Можно выбрать новый файл для замены.
+                                Текущее изображение уже загружено. Можно выбрать новый
+                                файл для замены.
                             </p>
                         )}
                     </div>
 
                     {currentImageUrl && (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
                             <img
                                 src={currentImageUrl}
                                 alt={card.title}
@@ -442,20 +541,30 @@ export default function CardEditPage() {
                         </div>
                     )}
 
-                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                        <input
-                            type="checkbox"
-                            name="is_published"
-                            checked={formData.is_published}
-                            onChange={handleChange}
-                        />
-                        <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
-                    </label>
+                    <div className="space-y-2">
+                        <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                            <input
+                                type="checkbox"
+                                name="is_published"
+                                checked={formData.is_published}
+                                onChange={handleChange}
+                            />
+                            <span className="text-sm text-slate-700 dark:text-slate-200">
+                                Опубликована
+                            </span>
+                        </label>
+
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Если снять галочку, карточка станет черновиком и будет видна только вам и администратору.
+                        </p>
+                    </div>
                 </section>
 
                 <section className="space-y-5">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Текущие вложения</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            Текущие вложения
+                        </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Здесь можно удалить уже прикреплённые файлы.
                         </p>
@@ -470,23 +579,40 @@ export default function CardEditPage() {
                             {existingMediaItems.map((item) => {
                                 const rawFilePath = item.file || item.file_path;
                                 const fileUrl = getFileUrl(rawFilePath);
-                                const fileName = getFileName(rawFilePath);
+                                const fileName = item.original_filename || getFileName(rawFilePath);
 
                                 return (
                                     <div
                                         key={item.id}
-                                        className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/80 md:flex-row md:items-center md:justify-between"
+                                        className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/80 md:flex-row md:items-start md:justify-between"
                                     >
-                                        <div className="space-y-1">
+                                        <div className="min-w-0 flex-1 space-y-1">
                                             <p className="break-all text-sm font-medium text-slate-900 dark:text-slate-100">
                                                 {fileName}
                                             </p>
                                             <p className="text-xs uppercase tracking-wide text-slate-400">
                                                 {item.media_type}
                                             </p>
-                                            {item.caption && (
-                                                <p className="text-sm text-slate-600 dark:text-slate-300">{item.caption}</p>
-                                            )}
+                                            <div className="space-y-2 pt-2">
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                    Описание вложения
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        existingAttachmentCaptions[item.id] ??
+                                                        item.caption ??
+                                                        ""
+                                                    }
+                                                    onChange={(event) =>
+                                                        handleExistingAttachmentCaptionChange(
+                                                            item.id,
+                                                            event.target.value
+                                                        )
+                                                    }
+                                                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                                                />
+                                            </div>
                                             {fileUrl && (
                                                 <a
                                                     href={fileUrl}
@@ -501,7 +627,9 @@ export default function CardEditPage() {
 
                                         <button
                                             type="button"
-                                            onClick={() => handleDeleteExistingAttachment(item.id)}
+                                            onClick={() =>
+                                                handleDeleteExistingAttachment(item.id)
+                                            }
                                             className="inline-flex rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20"
                                         >
                                             Удалить вложение
@@ -515,7 +643,9 @@ export default function CardEditPage() {
 
                 <section className="space-y-5">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Новые вложения</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            Новые вложения
+                        </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Здесь можно добавить новые файлы к карточке.
                         </p>
@@ -542,6 +672,11 @@ export default function CardEditPage() {
                         </p>
                     </div>
 
+                    <ErrorAlertStack
+                        error={attachmentError}
+                        itemClassName="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+                    />
+
                     {newAttachments.length > 0 && (
                         <div className="space-y-4">
                             {newAttachments.map((item, index) => (
@@ -565,24 +700,6 @@ export default function CardEditPage() {
                                                     handleNewAttachmentFieldChange(
                                                         index,
                                                         "caption",
-                                                        event.target.value
-                                                    )
-                                                }
-                                                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                                Порядок
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={item.sort_order}
-                                                onChange={(event) =>
-                                                    handleNewAttachmentFieldChange(
-                                                        index,
-                                                        "sort_order",
                                                         event.target.value
                                                     )
                                                 }

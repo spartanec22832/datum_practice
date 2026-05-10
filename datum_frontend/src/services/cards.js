@@ -27,6 +27,20 @@ export async function createCardMedia(cardId, payload) {
     return response.data;
 }
 
+export async function getCardMediaAllowedExtensions() {
+    const response = await api.get("/media/allowed-extensions/");
+    return response.data;
+}
+
+export async function updateCardMedia(mediaId, payload) {
+    const response = await api.patch(`/media/${mediaId}/`, payload, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+    return response.data;
+}
+
 export async function updateCard(id, payload, isFormData = false) {
     const config = isFormData
         ? {
@@ -36,12 +50,12 @@ export async function updateCard(id, payload, isFormData = false) {
         }
         : {};
 
-    const response = await api.patch(`/cards/${id}/`, payload, config);
+    const response = await api.patch(`/cards/id/${id}/`, payload, config);
     return response.data;
 }
 
 export async function deleteCard(id) {
-    const response = await api.delete(`/cards/${id}/`);
+    const response = await api.delete(`/cards/id/${id}/`);
     return response.data;
 }
 

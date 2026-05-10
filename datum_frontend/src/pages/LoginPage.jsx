@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { loginUser } from "../services/auth";
 import { saveTokens } from "../utils/auth";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -39,7 +41,12 @@ export default function LoginPage() {
             navigate("/");
         } catch (err) {
             console.error(err);
-            setError("Неверный логин или пароль.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u043e\u0439\u0442\u0438."
+                )
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -55,7 +62,7 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} noValidate className="space-y-5">
                     <div className="space-y-2">
                         <label
                             htmlFor="username"
@@ -94,11 +101,10 @@ export default function LoginPage() {
                         />
                     </div>
 
-                    {error && (
-                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            {error}
-                        </div>
-                    )}
+                    <ErrorAlertStack
+                        error={error}
+                        itemClassName="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+                    />
 
                     <button
                         type="submit"

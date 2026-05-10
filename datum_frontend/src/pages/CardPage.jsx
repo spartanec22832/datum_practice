@@ -1,7 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { deleteCard, getCardBySlug } from "../services/cards";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
+
+
+function normalizeSectionPath(path) {
+    return (path || "").replace(/^\/+|\/+$/g, "");
+}
+
+function buildSectionBreadcrumbs(sectionPath) {
+    const parts = normalizeSectionPath(sectionPath).split("/").filter(Boolean);
+
+    return parts.map((slug, index) => ({
+        slug,
+        path: `/sections/${parts.slice(0, index + 1).join("/")}`,
+        isLast: index === parts.length - 1,
+    }));
+}
 
 function getFileUrl(filePath) {
     if (!filePath) {
@@ -30,10 +47,24 @@ function getFileName(filePath) {
     }
 }
 
+function PublishBadge({ isPublished }) {
+    return isPublished ? (
+        <span className="inline-flex h-8 items-center gap-2 rounded-full bg-green-50 px-3 text-xs font-medium text-green-700 dark:border dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Опубликовано
+        </span>
+    ) : (
+        <span className="inline-flex h-8 items-center gap-2 rounded-full bg-red-50 px-3 text-xs font-medium text-red-700 dark:border dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            Не опубликовано
+        </span>
+    );
+}
+
 function MediaItemCard({ item }) {
     const rawFilePath = item.file || item.file_path;
     const fileUrl = getFileUrl(rawFilePath);
-    const fileName = getFileName(rawFilePath);
+    const fileName = item.original_filename || getFileName(rawFilePath);
     const mediaType = item.media_type;
     const caption = item.caption || "";
 
@@ -93,17 +124,20 @@ function MediaItemCard({ item }) {
                 </p>
 
                 {caption && (
-                    <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{caption}</p>
+                    <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                        {caption}
+                    </p>
                 )}
             </div>
         </article>
     );
 }
 
-export default function CardPage() {
-    const { slug } = useParams();
+export default function CardPage({ cardSlug = null, sectionPath = null }) {
+    const params = useParams();
+    const slug = cardSlug || params.slug;
     const navigate = useNavigate();
-    const { isAdmin } = useAuth();
+    const { canManageKnowledgeItem } = useAuth();
 
     const [card, setCard] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -123,7 +157,12 @@ export default function CardPage() {
                 setCard(data);
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить карточку.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -149,6 +188,26 @@ export default function CardPage() {
     const sectionSlug = card?.section_slug || card?.section?.slug || null;
     const sectionTitle = card?.section_title || card?.section?.title || "Раздел";
 
+    const backToSectionPath = sectionPath
+        ? `/sections/${sectionPath}`
+        : sectionSlug
+            ? `/sections/${sectionSlug}`
+            : "/sections";
+
+    const breadcrumbs = sectionPath
+        ? buildSectionBreadcrumbs(sectionPath)
+        : sectionSlug
+            ? [
+                {
+                    slug: sectionTitle,
+                    path: `/sections/${sectionSlug}`,
+                    isLast: true,
+                },
+            ]
+            : [];
+
+    const canManageCard = canManageKnowledgeItem(card);
+
     const mediaItems = Array.isArray(card?.media_items)
         ? [...card.media_items].sort(
             (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -169,15 +228,15 @@ export default function CardPage() {
             setError("");
 
             await deleteCard(card.id);
-
-            if (sectionSlug) {
-                navigate(`/sections/${sectionSlug}`);
-            } else {
-                navigate("/sections");
-            }
+            navigate(backToSectionPath);
         } catch (err) {
             console.error(err);
-            setError("Не удалось удалить карточку.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443."
+                )
+            );
             setIsDeleteModalOpen(false);
         } finally {
             setIsDeleting(false);
@@ -193,11 +252,7 @@ export default function CardPage() {
     }
 
     if (error && !card) {
-        return (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                {error}
-            </div>
-        );
+        return <ErrorAlertStack error={error} />;
     }
 
     if (!card) {
@@ -211,31 +266,37 @@ export default function CardPage() {
     return (
         <div className="space-y-8">
             <section className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                    <Link
+                        to="/sections"
+                        className="transition hover:text-slate-700 dark:text-slate-200"
+                    >
                         Справочник
                     </Link>
 
-                    {sectionSlug && (
-                        <>
+                    {breadcrumbs.map((item) => (
+                        <div key={item.path} className="flex items-center gap-2">
                             <span>/</span>
+
                             <Link
-                                to={`/sections/${sectionSlug}`}
+                                to={item.path}
                                 className="transition hover:text-slate-700 dark:text-slate-200"
                             >
-                                {sectionTitle}
+                                {item.slug}
                             </Link>
-                        </>
-                    )}
+                        </div>
+                    ))}
 
                     <span>/</span>
-                    <span className="text-slate-500 dark:text-slate-400">{card.title}</span>
+                    <span className="text-slate-500 dark:text-slate-400">
+        {card.title}
+    </span>
                 </div>
 
                 {sectionSlug && (
                     <div>
                         <Link
-                            to={`/sections/${sectionSlug}`}
+                            to={backToSectionPath}
                             className="inline-flex text-sm font-medium text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                         >
                             ← Назад в раздел
@@ -252,7 +313,7 @@ export default function CardPage() {
                     </p>
                 </div>
 
-                {isAdmin && (
+                {canManageCard && (
                     <div className="flex flex-wrap gap-3">
                         <Link
                             to={`/cards/${card.slug}/edit`}
@@ -275,13 +336,10 @@ export default function CardPage() {
                 )}
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
-            <article className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+            <article
+                className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                 {imageUrl ? (
                     <img
                         src={imageUrl}
@@ -295,13 +353,25 @@ export default function CardPage() {
                 )}
 
                 <div className="space-y-5 p-6">
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-400">
-            <span>
-              Обновлено{" "}
-                {card.updated_at
-                    ? new Date(card.updated_at).toLocaleDateString("ru-RU")
-                    : "—"}
-            </span>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                        <span>
+                            Автор:{" "}
+                            {typeof card.author === "object"
+                            ? card.author?.username ||
+                            card.author?.email ||
+                            `${card.author?.first_name || ""} ${card.author?.last_name || ""}`.trim() ||
+                            "Не указан"
+                            : card.author_username || card.author_email || "Не указан"}
+                        </span>
+
+                        <span>
+                            Обновлено{" "}
+                            {card.updated_at
+                                ? new Date(card.updated_at).toLocaleDateString("ru-RU")
+                                : "—"}
+                        </span>
+
+                        {canManageCard && <PublishBadge isPublished={card.is_published}/>}
                     </div>
 
                     <div className="space-y-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
@@ -342,8 +412,8 @@ export default function CardPage() {
                             </h2>
 
                             <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Чтобы удалить карточку, введите её название точно так же, как оно
-                                указано ниже:
+                                Чтобы удалить карточку, введите её название точно так же,
+                                как оно указано ниже:
                             </p>
 
                             <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 dark:border dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-100">
@@ -362,7 +432,9 @@ export default function CardPage() {
                                     id="delete-confirmation"
                                     type="text"
                                     value={deleteConfirmation}
-                                    onChange={(event) => setDeleteConfirmation(event.target.value)}
+                                    onChange={(event) =>
+                                        setDeleteConfirmation(event.target.value)
+                                    }
                                     placeholder="Введите точное название карточки"
                                     className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                                 />

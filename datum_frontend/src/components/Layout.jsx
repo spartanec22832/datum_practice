@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const THEME_STORAGE_KEY = "datum-theme";
@@ -85,12 +85,25 @@ export default function Layout() {
         <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
             <header className="border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800/80 dark:bg-[#11192e]/95">
                 <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
-                    <div className="shrink-0 text-left">
-                        <p className="text-xl font-bold text-slate-900 dark:text-slate-50">Datum</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Банк знаний компании
-                        </p>
-                    </div>
+                    <Link
+                        to="/"
+                        className="flex shrink-0 items-center gap-3 text-left transition hover:opacity-80"
+                    >
+                        <img
+                            src="/logo_dark_mini.png"
+                            alt="Datum"
+                            className="h-10 w-10 shrink-0 object-contain"
+                        />
+
+                        <div>
+                            <p className="text-xl font-bold text-slate-900 dark:text-slate-50">
+                                Datum Soft
+                            </p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Банк знаний компании
+                            </p>
+                        </div>
+                    </Link>
 
                     <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-2 lg:flex">
                         <NavLink to="/" className={navLinkClass} end>

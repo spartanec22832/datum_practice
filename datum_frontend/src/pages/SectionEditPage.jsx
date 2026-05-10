@@ -1,12 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ErrorAlertStack from "../components/ErrorAlertStack";
 import { getSectionBySlug, getSections, updateSection } from "../services/sections";
 import { useAuth } from "../context/AuthContext";
+import { getApiErrorMessages } from "../utils/apiError";
+
+function getSectionParentId(section) {
+    if (!section?.parent) {
+        return null;
+    }
+
+    return typeof section.parent === "object"
+        ? section.parent.id
+        : section.parent;
+}
 
 export default function SectionEditPage() {
     const { slug } = useParams();
     const navigate = useNavigate();
-    const { isAdmin, isAuthLoading } = useAuth();
+    const {isAuthLoading, canManageKnowledgeItem } = useAuth();
 
     const [section, setSection] = useState(null);
     const [sections, setSections] = useState([]);
@@ -51,7 +63,12 @@ export default function SectionEditPage() {
                 });
             } catch (err) {
                 console.error(err);
-                setError("Не удалось загрузить секцию для редактирования.");
+                setError(
+                    getApiErrorMessages(
+                        err,
+                        "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0440\u0430\u0437\u0434\u0435\u043b \u0434\u043b\u044f \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f."
+                    )
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -60,9 +77,36 @@ export default function SectionEditPage() {
         loadData();
     }, [slug]);
 
+    function getDescendantIds(sectionId, allSections) {
+        const result = new Set();
+
+        function collect(parentId) {
+            allSections
+                .filter((item) => Number(getSectionParentId(item)) === Number(parentId))
+                .forEach((child) => {
+                    result.add(Number(child.id));
+                    collect(child.id);
+                });
+        }
+
+        collect(sectionId);
+
+        return result;
+    }
+
     const parentOptions = useMemo(() => {
-        if (!section) return sections;
-        return sections.filter((item) => item.id !== section.id);
+        if (!section) {
+            return sections;
+        }
+
+        const descendantIds = getDescendantIds(section.id, sections);
+
+        return sections.filter((item) => {
+            const isCurrentSection = Number(item.id) === Number(section.id);
+            const isDescendant = descendantIds.has(Number(item.id));
+
+            return !isCurrentSection && !isDescendant;
+        });
     }, [sections, section]);
 
     function handleChange(event) {
@@ -87,8 +131,8 @@ export default function SectionEditPage() {
             const payload = {
                 title: formData.title,
                 description: formData.description,
-                is_published: formData.is_published,
                 parent: formData.parent ? Number(formData.parent) : null,
+                is_published: formData.is_published,
             };
 
             const updated = await updateSection(section.id, payload);
@@ -100,7 +144,12 @@ export default function SectionEditPage() {
             }, 700);
         } catch (err) {
             console.error(err);
-            setError("Не удалось сохранить изменения секции.");
+            setError(
+                getApiErrorMessages(
+                    err,
+                    "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0440\u0430\u0437\u0434\u0435\u043b\u0430."
+                )
+            );
         } finally {
             setIsSaving(false);
         }
@@ -114,7 +163,7 @@ export default function SectionEditPage() {
         );
     }
 
-    if (!isAdmin) {
+    if (!canManageKnowledgeItem(section)) {
         return (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
                 У вас нет прав для редактирования секции.
@@ -133,7 +182,10 @@ export default function SectionEditPage() {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link to="/sections" className="transition hover:text-slate-700 dark:text-slate-200">
+                <Link
+                    to="/sections"
+                    className="transition hover:text-slate-700 dark:text-slate-200"
+                >
                     Секции
                 </Link>
                 <span>/</span>
@@ -144,7 +196,9 @@ export default function SectionEditPage() {
                     {section.title}
                 </Link>
                 <span>/</span>
-                <span className="text-slate-500 dark:text-slate-400">Редактирование</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                    Редактирование
+                </span>
             </div>
 
             <section className="space-y-3">
@@ -156,11 +210,7 @@ export default function SectionEditPage() {
                 </p>
             </section>
 
-            {error && (
-                <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-                    {error}
-                </div>
-            )}
+            <ErrorAlertStack error={error} />
 
             {successMessage && (
                 <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -170,6 +220,7 @@ export default function SectionEditPage() {
 
             <form
                 onSubmit={handleSubmit}
+                noValidate
                 className="space-y-6 rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900/90"
             >
                 <div className="space-y-2">
@@ -230,15 +281,23 @@ export default function SectionEditPage() {
                     </select>
                 </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                    <input
-                        type="checkbox"
-                        name="is_published"
-                        checked={formData.is_published}
-                        onChange={handleChange}
-                    />
-                    <span className="text-sm text-slate-700 dark:text-slate-200">Опубликована</span>
-                </label>
+                <div className="space-y-2">
+                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            checked={formData.is_published}
+                            onChange={handleChange}
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                            Опубликована
+                        </span>
+                    </label>
+
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Если снять галочку, секция станет черновиком и будет видна только вам и администратору.
+                    </p>
+                </div>
 
                 <div className="flex gap-3">
                     <button
