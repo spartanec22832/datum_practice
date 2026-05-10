@@ -16,7 +16,7 @@ Backend-часть веб-платформы для внутреннего ба�
 
 ---
 
-## Установка и запуск
+## Локальные установка и запуск
 
 ### 1. Клонировать репозиторий
 ```bash
@@ -40,8 +40,14 @@ pip install -r requirements.txt
 CREATE DATABASE datum_db
 ```
 ### 6. Применить миграции, создать админа, запустить сервер
+
+При необходимости пересоздать миграции:
+
 ```bash
 python manage.py makemigrations
+```
+Выполнить миграции, создать суперпользователя, запустить сервер локально
+```bash
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
