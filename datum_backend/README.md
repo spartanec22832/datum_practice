@@ -53,6 +53,12 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+Для запуска тестов используйте: 
+
+```bash
+python manage.py test
+```
+
 После запуска проект будет доступен по адресу:
 http://127.0.0.1:8000/
 
