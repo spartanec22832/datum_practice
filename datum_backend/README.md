@@ -11,7 +11,7 @@ Backend-часть веб-платформы для внутреннего ба�
 - Simple JWT
 
 ## Требования
-- Python 3.11+
+- Python 3.12+
 - PostgreSQL
 
 ---
@@ -21,7 +21,7 @@ Backend-часть веб-платформы для внутреннего ба�
 ### 1. Клонировать репозиторий
 ```bash
 git clone <repo_url>
-cd datum_backend
+cd datum_practice/datum_backend
 ```
 ### 2. Создать и активировать виртуальное окружение
 ```bash
@@ -51,6 +51,12 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
+```
+
+Для запуска тестов используйте: 
+
+```bash
+python manage.py test
 ```
 
 После запуска проект будет доступен по адресу:

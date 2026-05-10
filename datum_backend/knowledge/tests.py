@@ -78,7 +78,7 @@ class KnowledgeApiTests(APITestCase):
     def test_other_user_cannot_edit_foreign_section(self):
         self.client.force_authenticate(self.other_user)
         response = self.client.patch(
-            f"/api/sections/{self.section.id}/",
+            f"/api/sections/id/{self.section.id}/",
             {"title": "Hijacked"},
             format="json",
         )
@@ -88,7 +88,7 @@ class KnowledgeApiTests(APITestCase):
     def test_admin_can_edit_foreign_card(self):
         self.client.force_authenticate(self.admin)
         response = self.client.patch(
-            f"/api/cards/{self.card.id}/",
+            f"/api/cards/id/{self.card.id}/",
             {"title": "Approved onboarding"},
             format="json",
         )
@@ -129,7 +129,7 @@ class KnowledgeApiTests(APITestCase):
             str(response.data["file"][0]),
         )
 
-    def test_anonymous_section_content_returns_published_children_only(self):
+    def test_authenticated_section_content_returns_published_children_only(self):
         hidden_section = Section.objects.create(
             title="Hidden child",
             description="Draft child",
@@ -153,6 +153,7 @@ class KnowledgeApiTests(APITestCase):
             is_published=True,
         )
 
+        self.client.force_authenticate(self.other_user)
         response = self.client.get(f"/api/sections/{self.section.slug}/content/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
