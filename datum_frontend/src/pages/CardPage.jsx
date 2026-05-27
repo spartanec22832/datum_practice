@@ -374,7 +374,8 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
                         {canManageCard && <PublishBadge isPublished={card.is_published}/>}
                     </div>
 
-                    <div className="space-y-4 text-sm leading-7 text-slate-700 dark:text-slate-200">
+                    <div
+                        className="space-y-4 whitespace-pre-line break-words text-sm leading-7 text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200">
                         <p>{card.content || "Содержимое карточки отсутствует."}</p>
                     </div>
                 </div>
@@ -383,7 +384,7 @@ export default function CardPage({ cardSlug = null, sectionPath = null }) {
             <section className="space-y-5">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                        Вложения карточки
+                    Вложения карточки
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         Дополнительные изображения, видео, аудио и документы.

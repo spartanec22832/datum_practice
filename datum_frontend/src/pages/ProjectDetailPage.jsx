@@ -215,7 +215,8 @@ export default function ProjectDetailPage() {
                                 </span>
                             </div>
 
-                            <div className="space-y-4 break-words text-sm leading-7 text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200">
+                            <div
+                                className="space-y-4 whitespace-pre-line break-words text-sm leading-7 text-slate-700 [overflow-wrap:anywhere] dark:text-slate-200">
                                 <p>
                                     {project.full_description || "Полное описание отсутствует."}
                                 </p>
@@ -226,7 +227,8 @@ export default function ProjectDetailPage() {
 
                 {hasGeojson && (
                     <aside className="space-y-6">
-                        <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+                        <section
+                            className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                             <div className="space-y-4 px-5 py-5">
                                 <div className="flex justify-center gap-3">
                                     <span className="rounded-full bg-slate-100 px-3 py-1 text-base font-medium text-slate-600 dark:bg-slate-900/80 dark:text-slate-400">
